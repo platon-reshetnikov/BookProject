@@ -1,11 +1,11 @@
 package com.epam.rd.autocode.spring.project.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 public class BookItem {
     @Id
@@ -20,12 +20,4 @@ public class BookItem {
 
     private Integer quantity;
 
-    public BookItem(Long id, Book book, Order order, Integer quantity) {
-        this.id = id;
-        this.book = book;
-        this.order = order;
-        this.quantity = quantity;
-    }
-
-    public BookItem() {}
 }
