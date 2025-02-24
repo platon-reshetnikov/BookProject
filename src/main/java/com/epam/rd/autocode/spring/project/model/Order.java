@@ -1,11 +1,15 @@
 package com.epam.rd.autocode.spring.project.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Setter
+@Getter
 @Entity
 public class Order {
     @Id
@@ -22,52 +26,16 @@ public class Order {
     @OneToMany(mappedBy = "order")
     private List<BookItem> bookItems;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
+    public Order(Long id, Client client, Employee employee, LocalDateTime orderDate, BigDecimal price, List<BookItem> bookItems) {
         this.id = id;
-    }
-
-    public Client getClient() {
-        return client;
-    }
-
-    public void setClient(Client client) {
         this.client = client;
-    }
-
-    public Employee getEmployee() {
-        return employee;
-    }
-
-    public void setEmployee(Employee employee) {
         this.employee = employee;
-    }
-
-    public LocalDateTime getOrderDate() {
-        return orderDate;
-    }
-
-    public void setOrderDate(LocalDateTime orderDate) {
         this.orderDate = orderDate;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
         this.price = price;
-    }
-
-    public List<BookItem> getBookItems() {
-        return bookItems;
-    }
-
-    public void setBookItems(List<BookItem> bookItems) {
         this.bookItems = bookItems;
     }
 
+    public Order() {
+
+    }
 }

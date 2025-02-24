@@ -1,27 +1,24 @@
 package com.epam.rd.autocode.spring.project.model;
 
 import jakarta.persistence.Entity;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
+@Setter
+@Getter
 @Entity
 public class Employee extends User{
     private String phone;
     private LocalDate birthDate;
 
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
+    public Employee(Long id, String email, String password, String name, String phone, LocalDate birthDate) {
+        super(id, email, password, name);
         this.phone = phone;
-    }
-
-    public LocalDate getBirthDate() {
-        return birthDate;
-    }
-
-    public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
+    }
+
+    public Employee() {
     }
 }
