@@ -6,6 +6,7 @@ import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
+import com.epam.rd.autocode.spring.project.model.enums.Language;
 import com.epam.rd.autocode.spring.project.repo.BookRepository;
 import com.epam.rd.autocode.spring.project.service.BookService;
 import lombok.RequiredArgsConstructor;
@@ -73,6 +74,14 @@ public class BookServiceImpl implements BookService {
     @Override
     public List<BookDTO> getBooksByAgeGroup(AgeGroup ageGroup) {
         List<Book> books = bookRepository.findByAgeGroup(ageGroup);
+        return books.stream()
+                .map(bookMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BookDTO> getBooksByLanguage(Language language) {
+        List<Book> books = bookRepository.findByLanguage(language);
         return books.stream()
                 .map(bookMapper::toDTO)
                 .collect(Collectors.toList());

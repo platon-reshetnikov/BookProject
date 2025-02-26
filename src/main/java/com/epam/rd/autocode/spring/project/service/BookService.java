@@ -2,6 +2,7 @@ package com.epam.rd.autocode.spring.project.service;
 
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
+import com.epam.rd.autocode.spring.project.model.enums.Language;
 
 import java.util.List;
 
@@ -20,4 +21,6 @@ public interface BookService {
     List<BookDTO> getBooksByGenre(String genre);
 
     List<BookDTO> getBooksByAgeGroup(AgeGroup ageGroup);
+
+    List<BookDTO> getBooksByLanguage(Language language);
 }

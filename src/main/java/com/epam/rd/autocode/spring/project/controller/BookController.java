@@ -1,6 +1,8 @@
 package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
+import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
+import com.epam.rd.autocode.spring.project.model.enums.Language;
 import com.epam.rd.autocode.spring.project.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -53,6 +55,17 @@ public class BookController {
     @PreAuthorize("hasAnyRole('USER', 'EMPLOYEE', 'CUSTOMER')")
     public List<BookDTO> getBooksByGenre(@PathVariable String genre) {
         return bookService.getBooksByGenre(genre);
+    }
+
+    @GetMapping("/age-group/{ageGroup}")
+    @PreAuthorize("hasAnyRole('USER', 'EMPLOYEE', 'CUSTOMER')")
+    public List<BookDTO> getBooksByAgeGroup(@PathVariable AgeGroup ageGroup) {
+        return bookService.getBooksByAgeGroup(ageGroup);
+    }
+
+    @GetMapping("/language/{language}")
+    public List<BookDTO> getBooksByLanguage(@PathVariable Language language) {
+        return bookService.getBooksByLanguage(language);
     }
 
 }
