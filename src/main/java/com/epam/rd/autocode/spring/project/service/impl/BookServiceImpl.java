@@ -2,6 +2,8 @@ package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.MapStruct.BookMapper;
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
+import com.epam.rd.autocode.spring.project.exception.NotFoundException;
+import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.repo.BookRepository;
 import com.epam.rd.autocode.spring.project.service.BookService;
@@ -29,13 +31,14 @@ public class BookServiceImpl implements BookService {
     @Override
     public BookDTO getBookByName(String name) {
         Book book = bookRepository.findByName(name)
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .orElseThrow(() -> new NotFoundException("Book not found with name: " + name));
         return bookMapper.toDTO(book);
     }
+
     @Override
     public BookDTO updateBookByName(String name, BookDTO bookDTO) {
         Book existingBook = bookRepository.findByName(name)
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .orElseThrow(() -> new NotFoundException("Book not found with name: " + name));
         bookMapper.updateEntityFromDTO(bookDTO, existingBook);
         Book updatedBook = bookRepository.save(existingBook);
         return bookMapper.toDTO(updatedBook);
@@ -44,14 +47,17 @@ public class BookServiceImpl implements BookService {
     @Override
     public void deleteBookByName(String name) {
         Book book = bookRepository.findByName(name)
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .orElseThrow(() -> new NotFoundException("Book not found with name: " + name));
         bookRepository.delete(book);
     }
 
     @Override
-    public BookDTO addBook(BookDTO book) {
-        Book books = bookMapper.toEntity(book);
-        Book savedBook = bookRepository.save(books);
+    public BookDTO addBook(BookDTO bookDTO) {
+        if (bookRepository.findByName(bookDTO.getName()).isPresent()) {
+            throw new AlreadyExistException("Book already exists with name: " + bookDTO.getName());
+        }
+        Book book = bookMapper.toEntity(bookDTO);
+        Book savedBook = bookRepository.save(book);
         return bookMapper.toDTO(savedBook);
     }
 }
