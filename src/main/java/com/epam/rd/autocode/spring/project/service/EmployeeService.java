@@ -2,6 +2,7 @@ package com.epam.rd.autocode.spring.project.service;
 
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface EmployeeService {
@@ -15,4 +16,6 @@ public interface EmployeeService {
     void deleteEmployeeByEmail(String email);
 
     EmployeeDTO addEmployee(EmployeeDTO employee);
+
+    List<EmployeeDTO> getEmployeesByBirthDate(LocalDate birthDate);
 }

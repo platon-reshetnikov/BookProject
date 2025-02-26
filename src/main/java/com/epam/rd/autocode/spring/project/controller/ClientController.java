@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -42,5 +43,10 @@ public class ClientController {
     public ResponseEntity<Void> deleteClient(@PathVariable String email) {
         clientService.deleteClientByEmail(email);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/balance-greater-than/{balance}")
+    public List<ClientDTO> getClientsWithBalanceGreaterThan(@PathVariable BigDecimal balance) {
+        return clientService.getClientsWithBalanceGreaterThan(balance);
     }
 }

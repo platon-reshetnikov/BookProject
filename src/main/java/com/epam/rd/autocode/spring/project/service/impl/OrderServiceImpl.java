@@ -1,6 +1,5 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
-import com.epam.rd.autocode.spring.project.MapStruct.ClientMapper;
 import com.epam.rd.autocode.spring.project.MapStruct.OrderMapper;
 import com.epam.rd.autocode.spring.project.dto.OrderDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
@@ -14,6 +13,7 @@ import com.epam.rd.autocode.spring.project.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,5 +50,13 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderMapper.toEntity(orderDTO);
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toDTO(savedOrder);
+    }
+
+    @Override
+    public List<OrderDTO> getOrdersByOrderDate(LocalDateTime orderDate) {
+        List<Order> orders = orderRepository.findByOrderDate(orderDate);
+        return orders.stream()
+                .map(orderMapper::toDTO)
+                .collect(Collectors.toList());
     }
 }

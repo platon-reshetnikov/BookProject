@@ -10,6 +10,7 @@ import com.epam.rd.autocode.spring.project.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,5 +59,13 @@ public class ClientServiceImpl implements ClientService {
         Client client = clientMapper.toEntity(clientDTO);
         Client savedClient = clientRepository.save(client);
         return clientMapper.toDTO(savedClient);
+    }
+
+    @Override
+    public List<ClientDTO> getClientsWithBalanceGreaterThan(BigDecimal balance) {
+        List<Client> clients = clientRepository.findByBalanceGreaterThan(balance);
+        return clients.stream()
+                .map(clientMapper::toDTO)
+                .collect(Collectors.toList());
     }
 }

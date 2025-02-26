@@ -2,6 +2,7 @@ package com.epam.rd.autocode.spring.project.service;
 
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface ClientService {
@@ -15,4 +16,6 @@ public interface ClientService {
     void deleteClientByEmail(String email);
 
     ClientDTO addClient(ClientDTO client);
+
+    List<ClientDTO> getClientsWithBalanceGreaterThan(BigDecimal balance);
 }

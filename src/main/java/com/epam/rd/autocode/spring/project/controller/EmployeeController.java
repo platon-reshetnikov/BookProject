@@ -3,10 +3,12 @@ package com.epam.rd.autocode.spring.project.controller;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -42,5 +44,10 @@ public class EmployeeController {
     public ResponseEntity<Void> deleteEmployee(@PathVariable String email) {
         employeeService.deleteEmployeeByEmail(email);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/birth-date/{birthDate}")
+    public List<EmployeeDTO> getEmployeesByBirthDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate birthDate) {
+        return employeeService.getEmployeesByBirthDate(birthDate);
     }
 }

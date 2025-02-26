@@ -10,6 +10,7 @@ import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,5 +59,13 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = employeeMapper.toEntity(employeeDTO);
         Employee savedEmployee = employeeRepository.save(employee);
         return employeeMapper.toDTO(savedEmployee);
+    }
+
+    @Override
+    public List<EmployeeDTO> getEmployeesByBirthDate(LocalDate birthDate) {
+        List<Employee> employees = employeeRepository.findByBirthDate(birthDate);
+        return employees.stream()
+                .map(employeeMapper::toDTO)
+                .collect(Collectors.toList());
     }
 }

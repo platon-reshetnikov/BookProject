@@ -48,4 +48,11 @@ public class BookController {
         bookService.deleteBookByName(name);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/genre/{genre}")
+    @PreAuthorize("hasAnyRole('USER', 'EMPLOYEE', 'CUSTOMER')")
+    public List<BookDTO> getBooksByGenre(@PathVariable String genre) {
+        return bookService.getBooksByGenre(genre);
+    }
+
 }
