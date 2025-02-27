@@ -8,10 +8,12 @@ import com.epam.rd.autocode.spring.project.model.Employee;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
+    private final MessageSource messageSource;
 
     @Override
     public List<EmployeeDTO> getAllEmployees() {
@@ -67,5 +70,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employees.stream()
                 .map(employeeMapper::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    public String getEmployeeNotFoundMessage(Locale locale){
+        return messageSource.getMessage("employee.not.found",null,locale);
     }
 }
