@@ -1,17 +1,20 @@
 package com.epam.rd.autocode.spring.project.model;
 
 import jakarta.persistence.Entity;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.Table;
+import lombok.*;
 
 import java.time.LocalDate;
 
 @Setter
 @Getter
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Entity
-public class Employee extends User{
+@Table(name = "EMPLOYEES")
+public class Employee extends User {
     private String phone;
     private LocalDate birthDate;
 

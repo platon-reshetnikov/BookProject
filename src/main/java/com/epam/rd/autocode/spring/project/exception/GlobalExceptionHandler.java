@@ -11,24 +11,23 @@ import java.util.Locale;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
     @Autowired
     private MessageSource messageSource;
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<String> handleNotFoundException(NotFoundException ex){
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    public ResponseEntity<String> handleNotFoundException(NotFoundException ex, Locale locale) {
+        // Use the message from the exception if no localized message is needed
+        String errorMessage = ex.getMessage();
+
+        // If you want to use a localized message, uncomment the following line:
+        // errorMessage = messageSource.getMessage("employee.not.found", null, locale);
+
+        return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(AlreadyExistException.class)
-    public ResponseEntity<String> handleAlreadyExistsException(AlreadyExistException ex){
-        return new ResponseEntity<>(ex.getMessage(),HttpStatus.FOUND);
+    public ResponseEntity<String> handleAlreadyExistsException(AlreadyExistException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT); // Use CONFLICT (409) instead of FOUND (302)
     }
-
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<String> handleNotFoundException(NotFoundException ex, Locale locale){
-        String message = messageSource.getMessage("employee.not.found",null,locale);
-        return new ResponseEntity<>(message,HttpStatus.NOT_FOUND);
-    }
-
-
 }
