@@ -7,6 +7,7 @@ import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Employee;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -39,7 +40,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public EmployeeDTO updateEmployeeByEmail(String email, EmployeeDTO employeeDTO) {
+    public EmployeeDTO updateEmployeeByEmail(String email, @Valid EmployeeDTO employeeDTO) {
         Employee existingEmployee = employeeRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("Employee not found with email: " + email));
         employeeMapper.updateEntityFromDTO(employeeDTO, existingEmployee);
@@ -55,7 +56,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public EmployeeDTO addEmployee(EmployeeDTO employeeDTO) {
+    public EmployeeDTO addEmployee(@Valid EmployeeDTO employeeDTO) {
         if (employeeRepository.findByEmail(employeeDTO.getEmail()).isPresent()) {
             throw new AlreadyExistException("Employee already exists with email: " + employeeDTO.getEmail());
         }
@@ -72,7 +73,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .collect(Collectors.toList());
     }
 
-    public String getEmployeeNotFoundMessage(Locale locale){
-        return messageSource.getMessage("employee.not.found",null,locale);
+    public String getEmployeeNotFoundMessage(Locale locale) {
+        return messageSource.getMessage("employee.not.found", null, locale);
     }
 }

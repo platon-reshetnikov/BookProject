@@ -1,22 +1,30 @@
 package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
+import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
 import com.epam.rd.autocode.spring.project.model.enums.Language;
 import com.epam.rd.autocode.spring.project.service.BookService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Locale;
 
 @RestController
 @RequestMapping("/books")
 public class BookController {
+
     @Autowired
     private BookService bookService;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('USER', 'EMPLOYEE', 'CUSTOMER')")
@@ -26,29 +34,45 @@ public class BookController {
 
     @GetMapping("/{name}")
     @PreAuthorize("hasAnyRole('USER', 'EMPLOYEE', 'CUSTOMER')")
-    public BookDTO getBookByName(@PathVariable String name) {
-        return bookService.getBookByName(name);
+    public ResponseEntity<?> getBookByName(@PathVariable String name, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
+        BookDTO book = bookService.getBookByName(name);
+        if (book == null) {
+            String message = messageSource.getMessage("book.not.found", new Object[]{name}, locale);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+        }
+        return ResponseEntity.ok(book);
     }
 
     @PostMapping
     @PreAuthorize("hasRole('EMPLOYEE')")
-    public ResponseEntity<BookDTO> addBook(@RequestBody BookDTO bookDTO) {
+    public ResponseEntity<?> addBook(@Valid @RequestBody BookDTO bookDTO, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
         BookDTO savedBook = bookService.addBook(bookDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedBook);
+        String message = messageSource.getMessage("book.added", new Object[]{savedBook.getName()}, locale);
+        return ResponseEntity.status(HttpStatus.CREATED).header("X-Message", message).body(savedBook);
     }
 
     @PutMapping("/{name}")
     @PreAuthorize("hasRole('EMPLOYEE')")
-    public ResponseEntity<BookDTO> updateBook(@PathVariable String name, @RequestBody BookDTO bookDTO) {
+    public ResponseEntity<?> updateBook(@PathVariable String name, @Valid @RequestBody BookDTO bookDTO, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
         BookDTO updatedBook = bookService.updateBookByName(name, bookDTO);
-        return ResponseEntity.ok(updatedBook);
+        if (updatedBook == null) {
+            String message = messageSource.getMessage("book.not.found", new Object[]{name}, locale);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+        }
+        String message = messageSource.getMessage("book.updated", new Object[]{updatedBook.getName()}, locale);
+        return ResponseEntity.ok().header("X-Message", message).body(updatedBook);
     }
 
     @DeleteMapping("/{name}")
     @PreAuthorize("hasRole('EMPLOYEE')")
-    public ResponseEntity<Void> deleteBook(@PathVariable String name) {
-        bookService.deleteBookByName(name);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteBook(@PathVariable String name, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
+        try {
+            bookService.deleteBookByName(name);
+            return ResponseEntity.noContent().build();
+        } catch (NotFoundException e) {
+            String message = messageSource.getMessage("book.not.found", new Object[]{name}, locale);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+        }
     }
 
     @GetMapping("/genre/{genre}")
@@ -67,5 +91,4 @@ public class BookController {
     public List<BookDTO> getBooksByLanguage(@PathVariable Language language) {
         return bookService.getBooksByLanguage(language);
     }
-
 }

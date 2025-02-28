@@ -10,6 +10,7 @@ import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.repo.OrderRepository;
 import com.epam.rd.autocode.spring.project.service.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +47,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderDTO addOrder(OrderDTO orderDTO) {
+    public OrderDTO addOrder(@Valid OrderDTO orderDTO) {
+        Client client = clientRepository.findByEmail(orderDTO.getClientEmail())
+                .orElseThrow(() -> new NotFoundException("Client not found with email: " + orderDTO.getClientEmail()));
+        Employee employee = employeeRepository.findByEmail(orderDTO.getEmployeeEmail())
+                .orElseThrow(() -> new NotFoundException("Employee not found with email: " + orderDTO.getEmployeeEmail()));
+
         Order order = orderMapper.toEntity(orderDTO);
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toDTO(savedOrder);

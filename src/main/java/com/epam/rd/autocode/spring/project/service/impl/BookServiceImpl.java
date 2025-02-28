@@ -9,6 +9,7 @@ import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
 import com.epam.rd.autocode.spring.project.model.enums.Language;
 import com.epam.rd.autocode.spring.project.repo.BookRepository;
 import com.epam.rd.autocode.spring.project.service.BookService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +39,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookDTO updateBookByName(String name, BookDTO bookDTO) {
+    public BookDTO updateBookByName(String name, @Valid BookDTO bookDTO) {
         Book existingBook = bookRepository.findByName(name)
                 .orElseThrow(() -> new NotFoundException("Book not found with name: " + name));
         bookMapper.updateEntityFromDTO(bookDTO, existingBook);
@@ -54,7 +55,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookDTO addBook(BookDTO bookDTO) {
+    public BookDTO addBook(@Valid BookDTO bookDTO) {
         if (bookRepository.findByName(bookDTO.getName()).isPresent()) {
             throw new AlreadyExistException("Book already exists with name: " + bookDTO.getName());
         }
