@@ -1,13 +1,16 @@
 package com.epam.rd.autocode.spring.project.conf;
 
+import com.epam.rd.autocode.spring.project.security.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
@@ -15,14 +18,19 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private final CustomUserDetailsService userDetailsService;
+
+    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable()) // Отключаем CSRF
                 .authorizeHttpRequests(auth -> auth
-                        // Доступ для всех пользователей (включая незарегистрированных)
-                        .requestMatchers("/books", "/books/{id}").permitAll() // Просмотр книг
+                        // Доступ для всех зарегистрированных пользователей
+                        .requestMatchers("/books", "/books/{name}").authenticated() // Просмотр книг
 
                         // Доступ для зарегистрированных пользователей
                         .requestMatchers("/profile", "/profile/edit").authenticated() // Редактирование профиля
@@ -42,37 +50,38 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form // Включаем форму входа
                         .loginPage("/login") // Страница входа
+                        .defaultSuccessUrl("/books", true)
                         .permitAll()
                 )
-                .logout(logout -> logout // Включаем выход
-                        .permitAll()
-                );
+                .logout(LogoutConfigurer::permitAll
+                )
+                .userDetailsService(userDetailsService);
 
         return http.build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // Используем BCrypt для шифрования паролей
+        return NoOpPasswordEncoder.getInstance();
     }
 
-    @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails user = User.withUsername("user")
-                .password(passwordEncoder().encode("password")) // Пароль: password
-                .roles("USER") // Зарегистрированный пользователь
-                .build();
-
-        UserDetails client = User.withUsername("client")
-                .password(passwordEncoder().encode("password")) // Пароль: password
-                .roles("CLIENT") // Клиент
-                .build();
-
-        UserDetails employee = User.withUsername("employee")
-                .password(passwordEncoder().encode("password")) // Пароль: password
-                .roles("EMPLOYEE") // Сотрудник
-                .build();
-
-        return new InMemoryUserDetailsManager(user, client, employee);
-    }
+//    @Bean
+//    public UserDetailsService userDetailsService() {
+//        UserDetails user = User.withUsername("user")
+//                .password(passwordEncoder().encode("password")) // Пароль: password
+//                .roles("USER") // Зарегистрированный пользователь
+//                .build();
+//
+//        UserDetails client = User.withUsername("client")
+//                .password(passwordEncoder().encode("password")) // Пароль: password
+//                .roles("CLIENT") // Клиент
+//                .build();
+//
+//        UserDetails employee = User.withUsername("employee")
+//                .password(passwordEncoder().encode("password")) // Пароль: password
+//                .roles("EMPLOYEE") // Сотрудник
+//                .build();
+//
+//        return new InMemoryUserDetailsManager(user, client, employee);
+//    }
 }

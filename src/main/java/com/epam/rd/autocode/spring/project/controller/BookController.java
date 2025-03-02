@@ -11,12 +11,14 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
 import java.util.Locale;
 
-@RestController
+@Controller // Use @Controller instead of @RestController for HTML rendering
 @RequestMapping("/books")
 public class BookController {
 
@@ -28,19 +30,24 @@ public class BookController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('USER', 'EMPLOYEE', 'CUSTOMER')")
-    public List<BookDTO> getAllBooks() {
-        return bookService.getAllBooks();
+    public ModelAndView getAllBooks() {
+        List<BookDTO> books = bookService.getAllBooks();
+        ModelAndView modelAndView = new ModelAndView("books"); // Name of the Thymeleaf template
+        modelAndView.addObject("books", books);
+        return modelAndView;
     }
 
     @GetMapping("/{name}")
     @PreAuthorize("hasAnyRole('USER', 'EMPLOYEE', 'CUSTOMER')")
-    public ResponseEntity<?> getBookByName(@PathVariable String name, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
+    //public ModelAndView getBookByName(@PathVariable String name, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
+    public ModelAndView getBookByName(@PathVariable String name) {
         BookDTO book = bookService.getBookByName(name);
         if (book == null) {
-            String message = messageSource.getMessage("book.not.found", new Object[]{name}, locale);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+            throw new NotFoundException("Book not found");
         }
-        return ResponseEntity.ok(book);
+        ModelAndView modelAndView = new ModelAndView("book-details"); // Name of the Thymeleaf template for book details
+        modelAndView.addObject("book", book);
+        return modelAndView;
     }
 
     @PostMapping

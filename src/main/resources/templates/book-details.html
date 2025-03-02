@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Book Details</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+    .book-details {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+    }
+    .book-details h2 {
+        margin-top: 0;
+    }
+    .book-details p {
+        margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+<div class="book-details">
+  <h2 th:text="${book.name}">Book Name</h2>
+  <p><strong>Genre:</strong> <span th:text="${book.genre}"></span></p>
+  <p><strong>Age Group:</strong> <span th:text="${book.ageGroup}"></span></p>
+  <p><strong>Price:</strong> <span th:text="${book.price}"></span></p>
+  <p><strong>Publication Date:</strong> <span th:text="${book.publicationDate}"></span></p>
+  <p><strong>Author:</strong> <span th:text="${book.author}"></span></p>
+  <p><strong>Pages:</strong> <span th:text="${book.pages}"></span></p>
+  <p><strong>Characteristics:</strong> <span th:text="${book.characteristics}"></span></p>
+  <p><strong>Description:</strong> <span th:text="${book.description}"></span></p>
+  <p><strong>Language:</strong> <span th:text="${book.language}"></span></p>
+
+  <a th:href="@{/books}" class="return-link">Return to Books</a>
+</div>
+</body>
+</html>

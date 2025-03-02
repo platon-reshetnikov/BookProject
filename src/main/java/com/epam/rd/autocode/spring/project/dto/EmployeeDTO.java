@@ -8,6 +8,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class EmployeeDTO {
     @NotBlank(message = "Email cannot be blank")
     @Email(message = "Email must be a valid email address")

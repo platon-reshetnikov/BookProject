@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Profile</title>
+  <link rel="stylesheet" href="/css/styles.css"> <!-- Optional: Add custom styles -->
+</head>
+<body>
+<h2>Edit Your Profile</h2>
+
+<form th:action="@{/profile/edit}" method="post" th:object="${user}">
+
+  <!-- Hidden field to pass user type -->
+  <input type="hidden" name="type" th:value="${user.getClass().simpleName == 'ClientDTO' ? 'client' : 'employee'}" />
+
+  <div>
+    <label for="name">Name:</label>
+    <input type="text" id="name" th:field="*{name}" required>
+  </div>
+  <div>
+    <label for="email">Email:</label>
+    <input type="email" id="email" th:field="*{email}" required>
+  </div>
+  <div>
+    <label for="password">Password:</label>
+    <input type="password" id="password" th:field="*{password}" required>
+  </div>
+
+  <!-- Additional fields for clients -->
+  <div th:if="${user.getClass().simpleName == 'ClientDTO'}">
+    <label for="balance">Balance:</label>
+    <input type="number" id="balance" th:field="*{balance}" step="0.01" required>
+  </div>
+
+  <!-- Additional fields for employees -->
+  <div th:if="${user.getClass().simpleName == 'EmployeeDTO'}">
+    <label for="phone">Phone:</label>
+    <input type="text" id="phone" th:field="*{phone}" required>
+    <label for="birthDate">Birth Date:</label>
+    <input type="date" id="birthDate" th:field="*{birthDate}" required>
+  </div>
+
+  <div>
+    <button type="submit">Save Changes</button>
+  </div>
+</form>
+
+<a th:href="@{/profile}">Back to Profile</a>
+</body>
+</html>

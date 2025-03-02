@@ -23,4 +23,5 @@ public class ClientDTO {
     @NotNull(message = "Balance cannot be null")
     @PositiveOrZero(message = "Balance must be zero or positive")
     private BigDecimal balance;
+
 }

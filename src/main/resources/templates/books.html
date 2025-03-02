@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Books</title>
+  <style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    table, th, td {
+        border: 1px solid black;
+    }
+    th, td {
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+<h1>Book List</h1>
+<table>
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Author</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="book : ${books}">
+    <td>
+      <a th:href="@{/books/{name}(name=${book.name})}" th:text="${book.name}"></a>
+    </td>
+    <td th:text="${book.author}"></td>
+  </tr>
+  </tbody>
+</table>
+
+<div style="margin-top: 20px;">
+  <a th:href="@{/logout}" class="logout-link">Logout</a>
+  <a th:href="@{/profile}">View Profile</a>
+</div>
+</body>
+</html>
