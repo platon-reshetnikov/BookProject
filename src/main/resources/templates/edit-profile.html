@@ -1,50 +1,77 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <title>Edit Profile</title>
-  <link rel="stylesheet" href="/css/styles.css"> <!-- Optional: Add custom styles -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<h2>Edit Your Profile</h2>
+<div class="container">
+  <h2>Edit Your Profile</h2>
 
-<form th:action="@{/profile/edit}" method="post" th:object="${user}">
+  <!-- Отображение общей ошибки -->
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-  <!-- Hidden field to pass user type -->
-  <input type="hidden" name="type" th:value="${user.getClass().simpleName == 'ClientDTO' ? 'client' : 'employee'}" />
-
-  <div>
-    <label for="name">Name:</label>
-    <input type="text" id="name" th:field="*{name}" required>
+  <!-- Форма для клиента -->
+  <div th:if="${userType == 'client'}">
+    <form th:action="@{/profile/edit}" th:object="${client}" method="post" class="needs-validation" novalidate>
+      <input type="hidden" name="userType" th:value="${userType}" />
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" th:field="*{email}" readonly />
+      </div>
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="name" th:field="*{name}" required />
+        <div class="text-danger" th:errors="*{name}"></div>
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" th:field="*{password}" required />
+        <div class="text-danger" th:errors="*{password}"></div>
+      </div>
+      <div class="mb-3">
+        <label for="balance" class="form-label">Balance</label>
+        <input type="number" step="0.01" class="form-control" id="balance" th:field="*{balance}" required />
+        <div class="text-danger" th:errors="*{balance}"></div>
+      </div>
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+      <a th:href="@{/profile}" class="btn btn-secondary">Cancel</a>
+    </form>
   </div>
-  <div>
-    <label for="email">Email:</label>
-    <input type="email" id="email" th:field="*{email}" required>
-  </div>
-  <div>
-    <label for="password">Password:</label>
-    <input type="password" id="password" th:field="*{password}" required>
-  </div>
 
-  <!-- Additional fields for clients -->
-  <div th:if="${user.getClass().simpleName == 'ClientDTO'}">
-    <label for="balance">Balance:</label>
-    <input type="number" id="balance" th:field="*{balance}" step="0.01" required>
+  <!-- Форма для сотрудника -->
+  <div th:if="${userType == 'employee'}">
+    <form th:action="@{/profile/edit}" th:object="${employee}" method="post" class="needs-validation" novalidate>
+      <input type="hidden" name="userType" th:value="${userType}" />
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" th:field="*{email}" readonly />
+      </div>
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="name" th:field="*{name}" required />
+        <div class="text-danger" th:errors="*{name}"></div>
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" th:field="*{password}" required />
+        <div class="text-danger" th:errors="*{password}"></div>
+      </div>
+      <div class="mb-3">
+        <label for="phone" class="form-label">Phone</label>
+        <input type="text" class="form-control" id="phone" th:field="*{phone}" required />
+        <div class="text-danger" th:errors="*{phone}"></div>
+      </div>
+      <div class="mb-3">
+        <label for="birthDate" class="form-label">Birth Date</label>
+        <input type="date" class="form-control" id="birthDate" th:field="*{birthDate}" required />
+        <div class="text-danger" th:errors="*{birthDate}"></div>
+      </div>
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+      <a th:href="@{/profile}" class="btn btn-secondary">Cancel</a>
+    </form>
   </div>
-
-  <!-- Additional fields for employees -->
-  <div th:if="${user.getClass().simpleName == 'EmployeeDTO'}">
-    <label for="phone">Phone:</label>
-    <input type="text" id="phone" th:field="*{phone}" required>
-    <label for="birthDate">Birth Date:</label>
-    <input type="date" id="birthDate" th:field="*{birthDate}" required>
-  </div>
-
-  <div>
-    <button type="submit">Save Changes</button>
-  </div>
-</form>
-
-<a th:href="@{/profile}">Back to Profile</a>
+</div>
 </body>
 </html>
