@@ -40,6 +40,10 @@ public class SecurityConfig {
                         .requestMatchers("/orders/submit").hasRole("CLIENT") // Размещение заказов
                         .requestMatchers("/profile/delete").hasRole("CLIENT") // Удаление аккаунта
 
+                        .requestMatchers("/orders/client/{clientEmail}").authenticated()
+                        .requestMatchers("/orders/employee/{employeeEmail}").authenticated()
+                        .requestMatchers("/orders/order-date/{orderDate}").authenticated()
+
                         // Доступ для сотрудников
                         .requestMatchers("/books/add", "/books/edit/{name}", "/books/delete/{name}").hasRole("EMPLOYEE") // Управление книгами
                         .requestMatchers("/orders/confirm/{id}").hasRole("EMPLOYEE") // Подтверждение заказов

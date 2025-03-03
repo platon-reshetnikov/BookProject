@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -64,5 +63,26 @@ public class OrderServiceImpl implements OrderService {
         return orders.stream()
                 .map(orderMapper::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<OrderDTO> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        return orders.stream()
+                .map(orderMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public OrderDTO confirmOrder(Long id, String employeeEmail) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Order not found with id: " + id));
+        Employee employee = employeeRepository.findByEmail(employeeEmail)
+                .orElseThrow(() -> new NotFoundException("Employee not found with email: " + employeeEmail));
+
+        // Подтверждаем заказ, назначая сотрудника
+        order.setEmployee(employee);
+        Order savedOrder = orderRepository.save(order);
+        return orderMapper.toDTO(savedOrder);
     }
 }

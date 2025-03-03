@@ -14,4 +14,8 @@ public interface OrderService {
     OrderDTO addOrder(OrderDTO order);
 
     List<OrderDTO> getOrdersByOrderDate(LocalDateTime orderDate);
+
+    OrderDTO confirmOrder(Long id, String employeeEmail);
+
+    List<OrderDTO> getAllOrders();
 }

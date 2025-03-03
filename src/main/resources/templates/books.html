@@ -23,16 +23,21 @@
       text-decoration: none;
       color: white;
       border-radius: 3px;
-      background-color: #28a745; /* Зеленый цвет для кнопки Add */
+    }
+    .btn-success {
+      background-color: #28a745;
+    }
+    .btn-primary {
+      background-color: #007bff;
     }
   </style>
 </head>
 <body>
 <h1>Book List</h1>
 
-<!-- Кнопка Add Book для сотрудников -->
-<div sec:authorize="hasRole('EMPLOYEE')" style="margin-bottom: 20px;">
-  <a th:href="@{/books/add}" class="btn">Add Book</a>
+<div style="margin-bottom: 20px;" sec:authorize="hasRole('EMPLOYEE')">
+  <a th:href="@{/books/add}" class="btn btn-success">Add Book</a>
+  <a th:href="@{/orders}" class="btn btn-primary">View Orders</a> <!-- Кнопка перехода -->
 </div>
 
 <table>
