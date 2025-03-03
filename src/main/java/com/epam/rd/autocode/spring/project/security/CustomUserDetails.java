@@ -19,13 +19,13 @@ public class CustomUserDetails implements UserDetails {
     public CustomUserDetails(Client client) {
         this.email = client.getEmail();
         this.password = client.getPassword();
-        this.authorities = Collections.singleton(new SimpleGrantedAuthority("CLIENT"));
+        this.authorities = Collections.singleton(new SimpleGrantedAuthority("ROLE_CLIENT"));
     }
 
     public CustomUserDetails(Employee employee) {
         this.email = employee.getEmail();
         this.password = employee.getPassword();
-        this.authorities = Collections.singleton(new SimpleGrantedAuthority("EMPLOYEE"));
+        this.authorities = Collections.singleton(new SimpleGrantedAuthority("ROLE_EMPLOYEE"));
     }
 
     @Override
