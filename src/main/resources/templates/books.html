@@ -37,7 +37,8 @@
 
 <div style="margin-bottom: 20px;" sec:authorize="hasRole('EMPLOYEE')">
   <a th:href="@{/books/add}" class="btn btn-success">Add Book</a>
-  <a th:href="@{/orders}" class="btn btn-primary">View Orders</a> <!-- Кнопка перехода -->
+  <a th:href="@{/orders}" class="btn btn-primary">View Orders</a>
+  <a th:href="@{/clients/manage}" class="btn btn-primary">Manage Clients</a>
 </div>
 
 <table>

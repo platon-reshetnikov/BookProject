@@ -18,4 +18,10 @@ public interface ClientService {
     ClientDTO addClient(ClientDTO client);
 
     List<ClientDTO> getClientsWithBalanceGreaterThan(BigDecimal balance);
+
+    void blockClient(String email);
+
+    void unblockClient(String email);
+
+    boolean isClientBlocked(String email);
 }

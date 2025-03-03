@@ -7,19 +7,29 @@ import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.service.ClientService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import jakarta.validation.Valid;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ClientServiceImpl.class);
+
     private final ClientRepository clientRepository;
     private final ClientMapper clientMapper;
+
+    // Временное хранилище статуса блокировки
+    private final Map<String, Boolean> clientBlockedStatus = new HashMap<>();
 
     @Override
     public List<ClientDTO> getAllClients() {
@@ -68,5 +78,26 @@ public class ClientServiceImpl implements ClientService {
         return clients.stream()
                 .map(clientMapper::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void blockClient(String email) {
+        Client client = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("Client not found with email: " + email));
+        clientBlockedStatus.put(email, true);
+        logger.info("Client blocked: {}", email);
+    }
+
+    @Override
+    public void unblockClient(String email) {
+        Client client = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("Client not found with email: " + email));
+        clientBlockedStatus.put(email, false);
+        logger.info("Client unblocked: {}", email);
+    }
+
+    @Override
+    public boolean isClientBlocked(String email) {
+        return clientBlockedStatus.getOrDefault(email, false);
     }
 }

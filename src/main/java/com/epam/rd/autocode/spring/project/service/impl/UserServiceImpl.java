@@ -6,18 +6,32 @@ import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.model.Employee;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
-import org.springframework.stereotype.Service;
-
+import com.epam.rd.autocode.spring.project.service.ClientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
 
 @Service
-public class UserServiceImpl {
+public class UserServiceImpl implements UserDetailsService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    private final ClientRepository clientRepository;
-    private final EmployeeRepository employeeRepository;
+    @Autowired
+    private ClientRepository clientRepository;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private ClientService clientService; // Добавляем зависимость
 
     public UserServiceImpl(ClientRepository clientRepository, EmployeeRepository employeeRepository) {
         this.clientRepository = clientRepository;
@@ -61,5 +75,30 @@ public class UserServiceImpl {
         employeeRepository.save(employee);
 
         logger.info("Employee updated successfully: {}", employee);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        logger.info("Authenticating user with email: {}", email);
+        Client client = clientRepository.findByEmail(email).orElse(null);
+        if (client != null) {
+            boolean isEnabled = !clientService.isClientBlocked(email); // Проверяем статус блокировки
+            UserDetails userDetails = new User(client.getEmail(), client.getPassword(),
+                    true, true, true, isEnabled,
+                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_CLIENT")));
+            logger.info("Client authenticated: {}, Roles: [ROLE_CLIENT], Enabled: {}", email, isEnabled);
+            return userDetails;
+        }
+
+        Employee employee = employeeRepository.findByEmail(email).orElse(null);
+        if (employee != null) {
+            UserDetails userDetails = new User(employee.getEmail(), employee.getPassword(),
+                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_EMPLOYEE")));
+            logger.info("Employee authenticated: {}, Roles: [ROLE_EMPLOYEE]", email);
+            return userDetails;
+        }
+
+        logger.warn("User not found with email: {}", email);
+        throw new UsernameNotFoundException("User not found with email: " + email);
     }
 }
