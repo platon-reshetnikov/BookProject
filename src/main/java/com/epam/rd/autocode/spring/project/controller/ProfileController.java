@@ -12,10 +12,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Controller
 @RequestMapping("/profile")
 public class ProfileController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProfileController.class);
 
     private final UserServiceImpl userService;
 
@@ -23,53 +27,52 @@ public class ProfileController {
         this.userService = userService;
     }
 
-    // View profile
     @GetMapping
     public String viewProfile(Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
+        logger.info("Viewing profile for user: {}, Roles: {}", email, authentication.getAuthorities());
 
-        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("CLIENT"))) {
+        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CLIENT"))) {
             Client client = userService.getClientByEmail(email);
             model.addAttribute("user", client);
             model.addAttribute("userType", "client");
-        } else if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("EMPLOYEE"))) {
+        } else if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_EMPLOYEE"))) {
             Employee employee = userService.getEmployeeByEmail(email);
             model.addAttribute("user", employee);
             model.addAttribute("userType", "employee");
         }
-
         return "profile";
     }
 
-    // Edit profile form
     @GetMapping("/edit")
     public String editProfileForm(Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
+        logger.info("Editing profile form for user: {}, Roles: {}", email, authentication.getAuthorities());
 
-        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("CLIENT"))) {
+        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CLIENT"))) {
             Client client = userService.getClientByEmail(email);
             ClientDTO clientDTO = new ClientDTO(client.getEmail(), client.getPassword(), client.getName(), client.getBalance());
-            model.addAttribute("client", clientDTO);
+            logger.info("ClientDTO created: {}", clientDTO);
+            model.addAttribute("user", clientDTO);
             model.addAttribute("userType", "client");
-        } else if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("EMPLOYEE"))) {
+        } else if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_EMPLOYEE"))) {
             Employee employee = userService.getEmployeeByEmail(email);
             EmployeeDTO employeeDTO = new EmployeeDTO(employee.getEmail(), employee.getPassword(), employee.getName(), employee.getPhone(), employee.getBirthDate());
-            model.addAttribute("employee", employeeDTO);
+            logger.info("EmployeeDTO created: {}", employeeDTO);
+            model.addAttribute("user", employeeDTO);
             model.addAttribute("userType", "employee");
         }
         return "edit-profile";
     }
 
-    // Save edited profile for Client
     @PostMapping("/edit")
-    public String saveClientProfile(
+    public String saveProfile(
             @RequestParam("userType") String userType,
-            @Valid @ModelAttribute("client") ClientDTO clientDTO,
-            BindingResult bindingResultClient,
-            @Valid @ModelAttribute("employee") EmployeeDTO employeeDTO,
-            BindingResult bindingResultEmployee,
+            @ModelAttribute("user") ClientDTO clientDTO,  // Для клиента
+            @ModelAttribute("user") EmployeeDTO employeeDTO, // Для сотрудника
+            BindingResult bindingResult,
             Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -77,31 +80,44 @@ public class ProfileController {
         }
 
         String email = authentication.getName();
+        logger.info("Saving profile for user: {}, userType: {}", email, userType);
 
         if ("client".equals(userType)) {
-            if (bindingResultClient.hasErrors()) {
-                model.addAttribute("userType", "client");
+            if (bindingResult.hasErrors()) {
+                logger.error("Client validation errors: {}", bindingResult.getAllErrors());
+                model.addAttribute("user", clientDTO);
+                model.addAttribute("userType", userType);
                 return "edit-profile";
             }
             try {
                 userService.updateClient(email, clientDTO);
             } catch (Exception e) {
+                logger.error("Error saving client profile: {}", e.getMessage());
                 model.addAttribute("error", e.getMessage());
-                model.addAttribute("userType", "client");
+                model.addAttribute("user", clientDTO);
+                model.addAttribute("userType", userType);
                 return "edit-profile";
             }
         } else if ("employee".equals(userType)) {
-            if (bindingResultEmployee.hasErrors()) {
-                model.addAttribute("userType", "employee");
+            if (bindingResult.hasErrors()) {
+                logger.error("Employee validation errors: {}", bindingResult.getAllErrors());
+                model.addAttribute("user", employeeDTO);
+                model.addAttribute("userType", userType);
                 return "edit-profile";
             }
             try {
                 userService.updateEmployee(email, employeeDTO);
             } catch (Exception e) {
+                logger.error("Error saving employee profile: {}", e.getMessage());
                 model.addAttribute("error", e.getMessage());
-                model.addAttribute("userType", "employee");
+                model.addAttribute("user", employeeDTO);
+                model.addAttribute("userType", userType);
                 return "edit-profile";
             }
+        } else {
+            logger.error("Invalid userType: {}", userType);
+            model.addAttribute("error", "Invalid user type: " + userType);
+            return "edit-profile";
         }
 
         return "redirect:/profile";

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
   <title>Profile</title>
-  <link rel="stylesheet" href="/css/styles.css"> <!-- Optional: Add custom styles -->
+  <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
 <h2>Your Profile</h2>
@@ -12,13 +12,18 @@
   <p><strong>Name:</strong> <span th:text="${user.name}"></span></p>
   <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
 
-  <!-- Display additional fields for clients -->
-  <div th:if="${user instanceof T(com.epam.rd.autocode.spring.project.model.Client)}">
+  <!-- Отладка ролей -->
+  <p>Roles: <span th:text="${#authentication.authorities}"></span></p>
+  <p sec:authorize="hasRole('EMPLOYEE')">You are an EMPLOYEE</p>
+  <p sec:authorize="hasRole('CLIENT')">You are a CLIENT</p>
+
+  <!-- Дополнительные поля для клиентов -->
+  <div th:if="${userType == 'client'}">
     <p><strong>Balance:</strong> <span th:text="${user.balance}"></span></p>
   </div>
 
-  <!-- Display additional fields for employees -->
-  <div th:if="${user instanceof T(com.epam.rd.autocode.spring.project.model.Employee)}">
+  <!-- Дополнительные поля для сотрудников -->
+  <div th:if="${userType == 'employee'}">
     <p><strong>Phone:</strong> <span th:text="${user.phone}"></span></p>
     <p><strong>Birth Date:</strong> <span th:text="${user.birthDate}"></span></p>
   </div>

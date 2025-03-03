@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
   <title>Edit Profile</title>
@@ -9,69 +9,52 @@
 <div class="container">
   <h2>Edit Your Profile</h2>
 
-  <!-- Отображение общей ошибки -->
   <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-  <!-- Форма для клиента -->
-  <div th:if="${userType == 'client'}">
-    <form th:action="@{/profile/edit}" th:object="${client}" method="post" class="needs-validation" novalidate>
-      <input type="hidden" name="userType" th:value="${userType}" />
-      <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
-        <input type="email" class="form-control" id="email" th:field="*{email}" readonly />
-      </div>
-      <div class="mb-3">
-        <label for="name" class="form-label">Name</label>
-        <input type="text" class="form-control" id="name" th:field="*{name}" required />
-        <div class="text-danger" th:errors="*{name}"></div>
-      </div>
-      <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <input type="password" class="form-control" id="password" th:field="*{password}" required />
-        <div class="text-danger" th:errors="*{password}"></div>
-      </div>
-      <div class="mb-3">
-        <label for="balance" class="form-label">Balance</label>
-        <input type="number" step="0.01" class="form-control" id="balance" th:field="*{balance}" required />
-        <div class="text-danger" th:errors="*{balance}"></div>
-      </div>
-      <button type="submit" class="btn btn-primary">Save Changes</button>
-      <a th:href="@{/profile}" class="btn btn-secondary">Cancel</a>
-    </form>
-  </div>
+  <!-- Отладка -->
+  <p>User: <span th:text="${user}"></span></p>
+  <p>User Type: <span th:text="${userType}"></span></p>
 
-  <!-- Форма для сотрудника -->
-  <div th:if="${userType == 'employee'}">
-    <form th:action="@{/profile/edit}" th:object="${employee}" method="post" class="needs-validation" novalidate>
-      <input type="hidden" name="userType" th:value="${userType}" />
-      <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
-        <input type="email" class="form-control" id="email" th:field="*{email}" readonly />
-      </div>
-      <div class="mb-3">
-        <label for="name" class="form-label">Name</label>
-        <input type="text" class="form-control" id="name" th:field="*{name}" required />
-        <div class="text-danger" th:errors="*{name}"></div>
-      </div>
-      <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <input type="password" class="form-control" id="password" th:field="*{password}" required />
-        <div class="text-danger" th:errors="*{password}"></div>
-      </div>
-      <div class="mb-3">
-        <label for="phone" class="form-label">Phone</label>
-        <input type="text" class="form-control" id="phone" th:field="*{phone}" required />
-        <div class="text-danger" th:errors="*{phone}"></div>
-      </div>
-      <div class="mb-3">
-        <label for="birthDate" class="form-label">Birth Date</label>
-        <input type="date" class="form-control" id="birthDate" th:field="*{birthDate}" required />
-        <div class="text-danger" th:errors="*{birthDate}"></div>
-      </div>
-      <button type="submit" class="btn btn-primary">Save Changes</button>
-      <a th:href="@{/profile}" class="btn btn-secondary">Cancel</a>
-    </form>
-  </div>
+  <form th:action="@{/profile/edit}" th:object="${user}" method="post" class="needs-validation" novalidate>
+    <input type="hidden" name="userType" th:value="${userType}" />
+    <div class="mb-3">
+      <label for="email" class="form-label">Email</label>
+      <input type="email" class="form-control" id="email" th:field="*{email}" readonly />
+      <div class="text-danger" th:errors="*{email}"></div>
+    </div>
+    <div class="mb-3">
+      <label for="name" class="form-label">Name</label>
+      <input type="text" class="form-control" id="name" th:field="*{name}" required />
+      <div class="text-danger" th:errors="*{name}"></div>
+    </div>
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input type="password" class="form-control" id="password" th:field="*{password}" required />
+      <div class="text-danger" th:errors="*{password}"></div>
+    </div>
+
+    <!-- Поля для клиента -->
+    <div th:if="${userType == 'client'}" class="mb-3">
+      <label for="balance" class="form-label">Balance</label>
+      <input type="number" step="0.01" class="form-control" id="balance" th:field="*{balance}" required />
+      <div class="text-danger" th:errors="*{balance}"></div>
+    </div>
+
+    <!-- Поля для сотрудника -->
+    <div th:if="${userType == 'employee'}" class="mb-3">
+      <label for="phone" class="form-label">Phone</label>
+      <input type="text" class="form-control" id="phone" th:field="*{phone}" required />
+      <div class="text-danger" th:errors="*{phone}"></div>
+    </div>
+    <div th:if="${userType == 'employee'}" class="mb-3">
+      <label for="birthDate" class="form-label">Birth Date</label>
+      <input type="date" class="form-control" id="birthDate" th:field="*{birthDate}" required />
+      <div class="text-danger" th:errors="*{birthDate}"></div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <a th:href="@{/profile}" class="btn btn-secondary">Cancel</a>
+  </form>
 </div>
 </body>
 </html>

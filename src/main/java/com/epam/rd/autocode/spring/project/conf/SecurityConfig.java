@@ -41,7 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/profile/delete").hasRole("CLIENT") // Удаление аккаунта
 
                         // Доступ для сотрудников
-                        .requestMatchers("/books/add", "/books/edit/{id}", "/books/delete/{id}").hasRole("EMPLOYEE") // Управление книгами
+                        .requestMatchers("/books/add", "/books/edit/{name}", "/books/delete/{name}").hasRole("EMPLOYEE") // Управление книгами
                         .requestMatchers("/orders/confirm/{id}").hasRole("EMPLOYEE") // Подтверждение заказов
                         .requestMatchers("/customers", "/customers/block/{id}", "/customers/unblock/{id}").hasRole("EMPLOYEE") // Управление клиентами
 
