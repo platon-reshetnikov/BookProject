@@ -111,4 +111,13 @@ public class ClientController {
         }
         return "redirect:/clients/manage";
     }
+
+    @GetMapping("/list")
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    public String getClientList(Model model) {
+        logger.info("Employee accessing client list");
+        List<ClientDTO> clients = clientService.getAllClients();
+        model.addAttribute("clients", clients);
+        return "client-list";
+    }
 }

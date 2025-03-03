@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers("/orders/order-date/{orderDate}").authenticated()
 
                         .requestMatchers("/clients", "/clients/{email}", "/clients/balance-greater-than/{balance}").authenticated()
+                        .requestMatchers("/clients/manage", "/clients/block/{email}", "/clients/unblock/{email}", "/clients/list").hasRole("EMPLOYEE")
 
                         // Доступ для сотрудников
                         .requestMatchers("/books/add", "/books/edit/{name}", "/books/delete/{name}").hasRole("EMPLOYEE") // Управление книгами
