@@ -4,6 +4,8 @@ import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.service.ClientService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -161,5 +164,21 @@ public class ClientController {
             model.addAttribute("errorMessage", "Client not found: " + clientEmail);
         }
         return "redirect:/clients/basket";
+    }
+
+    @PostMapping("/delete")
+    @PreAuthorize("hasRole('CLIENT')")
+    public String deleteAccount(HttpServletRequest request, HttpServletResponse response, Model model) {
+        String clientEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        logger.info("Client {} deleting their account", clientEmail);
+        try {
+            clientService.deleteClientByEmail(clientEmail);
+            // Выполняем выход после удаления аккаунта
+            new SecurityContextLogoutHandler().logout(request, response, SecurityContextHolder.getContext().getAuthentication());
+            return "redirect:/login?deleted"; // Перенаправляем на страницу логина с параметром
+        } catch (NotFoundException e) {
+            model.addAttribute("errorMessage", "Client not found: " + clientEmail);
+            return "profile"; // Возвращаем на профиль в случае ошибки
+        }
     }
 }
