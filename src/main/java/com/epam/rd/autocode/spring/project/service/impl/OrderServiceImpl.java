@@ -17,9 +17,13 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Optional;
+
+
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
+
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
     private final ClientRepository clientRepository;
@@ -27,21 +31,23 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<OrderDTO> getOrdersByClient(String clientEmail) {
-        Client client = clientRepository.findByEmail(clientEmail)
+        clientRepository.findByEmail(clientEmail)
                 .orElseThrow(() -> new NotFoundException("Client not found with email: " + clientEmail));
         List<Order> orders = orderRepository.findByClientEmail(clientEmail);
         return orders.stream()
                 .map(orderMapper::toDTO)
+                .filter(orderDTO -> orderDTO != null)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<OrderDTO> getOrdersByEmployee(String employeeEmail) {
-        Employee employee = employeeRepository.findByEmail(employeeEmail)
+        employeeRepository.findByEmail(employeeEmail)
                 .orElseThrow(() -> new NotFoundException("Employee not found with email: " + employeeEmail));
         List<Order> orders = orderRepository.findByEmployeeEmail(employeeEmail);
         return orders.stream()
                 .map(orderMapper::toDTO)
+                .filter(orderDTO -> orderDTO != null)
                 .collect(Collectors.toList());
     }
 
@@ -49,10 +55,13 @@ public class OrderServiceImpl implements OrderService {
     public OrderDTO addOrder(@Valid OrderDTO orderDTO) {
         Client client = clientRepository.findByEmail(orderDTO.getClientEmail())
                 .orElseThrow(() -> new NotFoundException("Client not found with email: " + orderDTO.getClientEmail()));
+
         Employee employee = employeeRepository.findByEmail(orderDTO.getEmployeeEmail())
                 .orElseThrow(() -> new NotFoundException("Employee not found with email: " + orderDTO.getEmployeeEmail()));
 
         Order order = orderMapper.toEntity(orderDTO);
+        order.setClient(client);
+        order.setEmployee(employee);
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toDTO(savedOrder);
     }
@@ -62,6 +71,7 @@ public class OrderServiceImpl implements OrderService {
         List<Order> orders = orderRepository.findByOrderDate(orderDate);
         return orders.stream()
                 .map(orderMapper::toDTO)
+                .filter(orderDTO -> orderDTO != null)
                 .collect(Collectors.toList());
     }
 
@@ -70,19 +80,25 @@ public class OrderServiceImpl implements OrderService {
         List<Order> orders = orderRepository.findAll();
         return orders.stream()
                 .map(orderMapper::toDTO)
+                .filter(orderDTO -> orderDTO != null)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public OrderDTO confirmOrder(Long id, String employeeEmail) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Order not found with id: " + id));
+    public OrderDTO confirmOrder(String clientEmail, LocalDateTime orderDate, String employeeEmail) {
+        Order order = orderRepository.findByClientEmailAndOrderDate(clientEmail, orderDate)
+                .orElseThrow(() -> new NotFoundException("Order not found for client " + clientEmail + " and date " + orderDate));
         Employee employee = employeeRepository.findByEmail(employeeEmail)
                 .orElseThrow(() -> new NotFoundException("Employee not found with email: " + employeeEmail));
-
-        // Подтверждаем заказ, назначая сотрудника
         order.setEmployee(employee);
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toDTO(savedOrder);
+    }
+
+    @Override
+    public OrderDTO findOrderByClientEmailAndOrderDate(String clientEmail, LocalDateTime orderDate) {
+        Optional<Order> orderOptional = orderRepository.findByClientEmailAndOrderDate(clientEmail, orderDate);
+        Order order = orderOptional.orElseThrow(() -> new NotFoundException("Order not found for client " + clientEmail + " and date " + orderDate));
+        return orderMapper.toDTO(order);
     }
 }

@@ -24,7 +24,7 @@ public class Order {
     @ManyToOne
     private Client client;
 
-    @NotNull(message = "Employee cannot be null")
+//    @NotNull(message = "Employee cannot be null")
     @ManyToOne
     private Employee employee;
 

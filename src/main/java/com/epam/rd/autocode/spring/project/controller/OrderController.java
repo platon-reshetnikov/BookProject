@@ -89,20 +89,19 @@ public class OrderController {
         return "orders";
     }
 
-    @PostMapping("/confirm/{id}")
+    @PostMapping("/confirm")
     @PreAuthorize("hasRole('EMPLOYEE')")
-    public String confirmOrder(@PathVariable Long id, Model model, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
-        logger.info("Employee confirming order with id: {}", id);
+    public String confirmOrder(@RequestParam("clientEmail") String clientEmail,
+                               @RequestParam("orderDate") LocalDateTime orderDate,
+                               @RequestParam("employeeEmail") String employeeEmail,
+                               Model model) {
+        logger.info("Employee {} confirming order for client {} at {}", employeeEmail, clientEmail, orderDate);
         try {
-            String employeeEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-            OrderDTO confirmedOrder = orderService.confirmOrder(id, employeeEmail);
-            String message = messageSource.getMessage("order.confirmed", new Object[]{confirmedOrder.getClientEmail()}, locale);
-            model.addAttribute("successMessage", message);
-            return "redirect:/orders";
+            orderService.confirmOrder(clientEmail, orderDate, employeeEmail);
+            model.addAttribute("successMessage", "Order confirmed successfully");
         } catch (NotFoundException e) {
-            String message = messageSource.getMessage("order.not.found", new Object[]{id}, locale);
-            model.addAttribute("errorMessage", message);
-            return "orders";
+            model.addAttribute("errorMessage", e.getMessage());
         }
+        return "redirect:/orders";
     }
 }

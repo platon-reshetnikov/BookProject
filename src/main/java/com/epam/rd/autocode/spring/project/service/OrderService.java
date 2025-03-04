@@ -15,7 +15,9 @@ public interface OrderService {
 
     List<OrderDTO> getOrdersByOrderDate(LocalDateTime orderDate);
 
-    OrderDTO confirmOrder(Long id, String employeeEmail);
+    OrderDTO confirmOrder(String clientEmail, LocalDateTime orderDate, String employeeEmail); // Обновленный метод
 
     List<OrderDTO> getAllOrders();
+
+    OrderDTO findOrderByClientEmailAndOrderDate(String clientEmail, LocalDateTime orderDate); // Новый метод
 }

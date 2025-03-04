@@ -49,10 +49,16 @@
         </ul>
       </td>
       <td>
-        <form th:action="@{/orders/confirm/{id}(id=${order.id})}" method="post" style="display:inline;" th:if="${order.employeeEmail == null}">
-          <button type="submit" class="btn btn-success btn-sm">Confirm</button>
+        <form th:action="@{/orders/confirm}" method="post" style="display:inline;">
+          <input type="hidden" name="clientEmail" th:value="${order.clientEmail}"/>
+          <input type="hidden" name="orderDate" th:value="${order.orderDate}"/>
+          <input type="hidden" name="employeeEmail" th:value="${#authentication.name}"/>
+          <button type="submit" class="btn btn-success btn-sm" th:disabled="${order.employeeEmail != null}">Confirm</button>
         </form>
       </td>
+    </tr>
+    <tr th:unless="${orders != null && !orders.isEmpty()}">
+      <td colspan="6">No orders found</td>
     </tr>
     </tbody>
   </table>

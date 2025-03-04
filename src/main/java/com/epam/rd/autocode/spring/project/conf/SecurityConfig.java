@@ -36,7 +36,7 @@ public class SecurityConfig {
                         .requestMatchers("/orders/client/{clientEmail}").authenticated()
                         .requestMatchers("/orders/employee/{employeeEmail}").authenticated()
                         .requestMatchers("/orders/order-date/{orderDate}").authenticated()
-                        .requestMatchers("/clients", "/clients/{email}", "/clients/basket", "/clients/basket/add/{bookName}", "/clients/basket/clear", "/clients/delete").authenticated()
+                        .requestMatchers("/clients", "/clients/{email}", "/clients/basket", "/clients/basket/add/{bookName}", "/clients/basket/clear", "/clients/basket/submit", "/clients/delete").authenticated()
                         .requestMatchers("/profile/delete").hasRole("CLIENT")
                         .requestMatchers("/clients/delete").hasRole("CLIENT")
                         .requestMatchers("/books/add", "/books/edit/{name}", "/books/delete/{name}").hasRole("EMPLOYEE")

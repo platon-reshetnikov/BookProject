@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order,Long> {
@@ -15,4 +16,6 @@ public interface OrderRepository extends JpaRepository<Order,Long> {
     List<Order> findByEmployeeEmail(String employeeEmail);
 
     List<Order> findByOrderDate(LocalDateTime orderDate);
+
+    Optional<Order> findByClientEmailAndOrderDate(String clientEmail, LocalDateTime orderDate);
 }

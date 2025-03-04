@@ -2,8 +2,13 @@ package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
+import com.epam.rd.autocode.spring.project.dto.OrderDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
+import com.epam.rd.autocode.spring.project.model.Employee;
+import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.service.ClientService;
+import com.epam.rd.autocode.spring.project.service.EmployeeService;
+import com.epam.rd.autocode.spring.project.service.OrderService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -20,9 +25,11 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 @Controller
 @RequestMapping("/clients")
@@ -32,6 +39,13 @@ public class ClientController {
 
     @Autowired
     private ClientService clientService;
+
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
 
     @GetMapping
     public ResponseEntity<List<ClientDTO>> getAllClientsRest() {
@@ -179,6 +193,52 @@ public class ClientController {
         } catch (NotFoundException e) {
             model.addAttribute("errorMessage", "Client not found: " + clientEmail);
             return "profile"; // Возвращаем на профиль в случае ошибки
+        }
+    }
+
+    @PostMapping("/basket/submit")
+    @PreAuthorize("hasRole('CLIENT')")
+    public String submitOrder(Model model) {
+        String clientEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        logger.info("Client {} submitting order from basket", clientEmail);
+
+        try {
+            clientService.getClientByEmail(clientEmail);
+        } catch (NotFoundException e) {
+            logger.warn("Client {} not found in database, possibly deleted", clientEmail);
+            model.addAttribute("errorMessage", "Your account no longer exists. Please log in again.");
+            return "redirect:/login?error";
+        }
+
+        List<BookItemDTO> basket = clientService.getBasket(clientEmail);
+        if (basket == null || basket.isEmpty()) {
+            model.addAttribute("errorMessage", "Your basket is empty");
+            return "basket";
+        }
+
+        try {
+            List<Employee> employees = employeeRepository.findAll();
+            if (employees.isEmpty()) {
+                model.addAttribute("errorMessage", "No employees available to process your order");
+                return "basket";
+            }
+            String employeeEmail = employees.get(new Random().nextInt(employees.size())).getEmail();
+
+            OrderDTO orderDTO = new OrderDTO();
+            orderDTO.setClientEmail(clientEmail);
+            orderDTO.setEmployeeEmail(employeeEmail);
+            orderDTO.setOrderDate(LocalDateTime.now());
+            orderDTO.setPrice(BigDecimal.ZERO);
+            orderDTO.setBookItems(basket);
+
+            orderService.addOrder(orderDTO);
+            clientService.clearBasket(clientEmail);
+            model.addAttribute("successMessage", "Your order has been submitted and assigned to " + employeeEmail);
+            return "redirect:/clients/basket";
+        } catch (Exception e) {
+            logger.error("Error submitting order for client {}: {}", clientEmail, e.getMessage());
+            model.addAttribute("errorMessage", "Error submitting order: " + e.getMessage());
+            return "basket";
         }
     }
 }
