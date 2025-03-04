@@ -29,30 +29,19 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // Отключаем CSRF
                 .authorizeHttpRequests(auth -> auth
-                        // Доступ для всех зарегистрированных пользователей
-                        .requestMatchers("/books", "/books/{name}").authenticated() // Просмотр книг
-
-                        // Доступ для зарегистрированных пользователей
-                        .requestMatchers("/profile", "/profile/edit").authenticated() // Редактирование профиля
-
-                        // Доступ для клиентов
-                        .requestMatchers("/basket/**").hasRole("CLIENT") // Корзина
-                        .requestMatchers("/orders/submit").hasRole("CLIENT") // Размещение заказов
-                        .requestMatchers("/profile/delete").hasRole("CLIENT") // Удаление аккаунта
-
+                        .requestMatchers("/books", "/books/{name}").authenticated()
+                        .requestMatchers("/profile", "/profile/edit").authenticated()
+                        .requestMatchers("/basket/**").hasRole("CLIENT")
+                        .requestMatchers("/orders/submit").hasRole("CLIENT")
                         .requestMatchers("/orders/client/{clientEmail}").authenticated()
                         .requestMatchers("/orders/employee/{employeeEmail}").authenticated()
                         .requestMatchers("/orders/order-date/{orderDate}").authenticated()
-
-                        .requestMatchers("/clients", "/clients/{email}", "/clients/balance-greater-than/{balance}").authenticated()
+                        .requestMatchers("/clients", "/clients/{email}", "/clients/basket", "/clients/basket/add/{bookName}", "/clients/basket/clear", "/clients/delete").authenticated()
+                        .requestMatchers("/profile/delete").hasRole("CLIENT")
+                        .requestMatchers("/clients/delete").hasRole("CLIENT")
+                        .requestMatchers("/books/add", "/books/edit/{name}", "/books/delete/{name}").hasRole("EMPLOYEE")
+                        .requestMatchers("/orders", "/orders/confirm/{id}").hasRole("EMPLOYEE")
                         .requestMatchers("/clients/manage", "/clients/block/{email}", "/clients/unblock/{email}", "/clients/list").hasRole("EMPLOYEE")
-
-                        // Доступ для сотрудников
-                        .requestMatchers("/books/add", "/books/edit/{name}", "/books/delete/{name}").hasRole("EMPLOYEE") // Управление книгами
-                        .requestMatchers("/orders/confirm/{id}").hasRole("EMPLOYEE") // Подтверждение заказов
-                        .requestMatchers("/customers", "/customers/block/{id}", "/customers/unblock/{id}").hasRole("EMPLOYEE") // Управление клиентами
-
-                        // Все остальные запросы требуют авторизации
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form // Включаем форму входа

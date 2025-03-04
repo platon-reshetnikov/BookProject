@@ -148,4 +148,18 @@ public class ClientController {
         model.addAttribute("basket", basket);
         return "basket";
     }
+
+    @PostMapping("/basket/clear")
+    @PreAuthorize("hasRole('CLIENT')")
+    public String clearBasket(Model model) {
+        String clientEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        logger.info("Client {} clearing their basket", clientEmail);
+        try {
+            clientService.clearBasket(clientEmail);
+            model.addAttribute("successMessage", "Your basket has been cleared");
+        } catch (NotFoundException e) {
+            model.addAttribute("errorMessage", "Client not found: " + clientEmail);
+        }
+        return "redirect:/clients/basket";
+    }
 }
