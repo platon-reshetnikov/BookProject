@@ -1,5 +1,6 @@
 package com.epam.rd.autocode.spring.project.service;
 
+import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 
 import java.math.BigDecimal;
@@ -24,4 +25,11 @@ public interface ClientService {
     void unblockClient(String email);
 
     boolean isClientBlocked(String email);
+
+    void addBookToBasket(String clientEmail, String bookName, int quantity);
+
+    List<BookItemDTO> getBasket(String clientEmail);
+
+    void clearBasket(String clientEmail);
+
 }

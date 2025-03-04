@@ -1,5 +1,6 @@
 package com.epam.rd.autocode.spring.project.controller;
 
+import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.service.ClientService;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -119,5 +121,31 @@ public class ClientController {
         List<ClientDTO> clients = clientService.getAllClients();
         model.addAttribute("clients", clients);
         return "client-list";
+    }
+
+    @PostMapping("/basket/add/{bookName}")
+    @PreAuthorize("hasRole('CLIENT')")
+    public String addBookToBasket(@PathVariable String bookName, @RequestParam(defaultValue = "1") int quantity, Model model) {
+        String clientEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        logger.info("Client {} adding book {} to basket", clientEmail, bookName);
+        try {
+            clientService.addBookToBasket(clientEmail, bookName, quantity);
+            model.addAttribute("successMessage", "Book " + bookName + " added to basket");
+        } catch (NotFoundException e) {
+            model.addAttribute("errorMessage", "Client not found: " + clientEmail);
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/books";
+    }
+
+    @GetMapping("/basket")
+    @PreAuthorize("hasRole('CLIENT')")
+    public String viewBasket(Model model) {
+        String clientEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        logger.info("Client {} viewing basket", clientEmail);
+        List<BookItemDTO> basket = clientService.getBasket(clientEmail);
+        model.addAttribute("basket", basket);
+        return "basket";
     }
 }

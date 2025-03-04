@@ -1,6 +1,7 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.MapStruct.ClientMapper;
+import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
@@ -14,9 +15,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +29,8 @@ public class ClientServiceImpl implements ClientService {
 
     // Временное хранилище статуса блокировки
     private final Map<String, Boolean> clientBlockedStatus = new HashMap<>();
+
+    private final Map<String, List<BookItemDTO>> clientBaskets = new HashMap<>();
 
     @Override
     public List<ClientDTO> getAllClients() {
@@ -99,5 +100,40 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public boolean isClientBlocked(String email) {
         return clientBlockedStatus.getOrDefault(email, false);
+    }
+
+    @Override
+    public void addBookToBasket(String clientEmail, String bookName, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+        Client client = clientRepository.findByEmail(clientEmail)
+                .orElseThrow(() -> new NotFoundException("Client not found with email: " + clientEmail));
+        List<BookItemDTO> basket = clientBaskets.getOrDefault(clientEmail, new ArrayList<>());
+        Optional<BookItemDTO> existingItem = basket.stream()
+                .filter(item -> item.getBookName().equals(bookName))
+                .findFirst();
+        if (existingItem.isPresent()) {
+            existingItem.get().setQuantity(existingItem.get().getQuantity() + quantity);
+        } else {
+            basket.add(new BookItemDTO(bookName, quantity));
+        }
+        clientBaskets.put(clientEmail, basket);
+        logger.info("Book {} added to basket for client: {}", bookName, clientEmail);
+    }
+
+    @Override
+    public List<BookItemDTO> getBasket(String clientEmail) {
+        Client client = clientRepository.findByEmail(clientEmail)
+                .orElseThrow(() -> new NotFoundException("Client not found with email: " + clientEmail));
+        return clientBaskets.getOrDefault(clientEmail, new ArrayList<>());
+    }
+
+    @Override
+    public void clearBasket(String clientEmail) {
+        Client client = clientRepository.findByEmail(clientEmail)
+                .orElseThrow(() -> new NotFoundException("Client not found with email: " + clientEmail));
+        clientBaskets.remove(clientEmail);
+        logger.info("Basket cleared for client: {}", clientEmail);
     }
 }

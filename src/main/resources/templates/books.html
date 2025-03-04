@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <title>Books</title>
@@ -42,11 +42,19 @@
   <a th:href="@{/clients/list}" class="btn btn-primary">View Client List</a>
 </div>
 
+<div style="margin-bottom: 20px;" sec:authorize="hasRole('CLIENT')">
+  <a th:href="@{/clients/basket}" class="btn btn-primary">View Basket</a>
+</div>
+
+<div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+<div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
 <table>
   <thead>
   <tr>
     <th>Name</th>
     <th>Author</th>
+    <th sec:authorize="hasRole('CLIENT')">Actions</th>
   </tr>
   </thead>
   <tbody>
@@ -55,6 +63,12 @@
       <a th:href="@{/books/{name}(name=${book.name})}" th:text="${book.name}"></a>
     </td>
     <td th:text="${book.author}"></td>
+    <td sec:authorize="hasRole('CLIENT')">
+      <form th:action="@{/clients/basket/add/{bookName}(bookName=${book.name})}" method="post" style="display:inline;">
+        <input type="hidden" name="quantity" value="1"/>
+        <button type="submit" class="btn btn-success btn-sm">Add to Basket</button>
+      </form>
+    </td>
   </tr>
   </tbody>
 </table>
