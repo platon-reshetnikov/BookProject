@@ -1,4 +1,4 @@
-package com.epam.rd.autocode.spring.project.MapStruct;
+package com.epam.rd.autocode.spring.project.mapper;
 
 import com.epam.rd.autocode.spring.project.dto.OrderDTO;
 import com.epam.rd.autocode.spring.project.model.Order;

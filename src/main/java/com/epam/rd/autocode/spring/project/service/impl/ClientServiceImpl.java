@@ -1,6 +1,6 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
-import com.epam.rd.autocode.spring.project.MapStruct.ClientMapper;
+import com.epam.rd.autocode.spring.project.mapper.ClientMapper;
 import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;

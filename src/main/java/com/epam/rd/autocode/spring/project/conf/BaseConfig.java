@@ -1,10 +1,9 @@
 package com.epam.rd.autocode.spring.project.conf;
 
-import com.epam.rd.autocode.spring.project.MapStruct.BookMapper;
-import com.epam.rd.autocode.spring.project.MapStruct.ClientMapper;
-import com.epam.rd.autocode.spring.project.MapStruct.EmployeeMapper;
-import com.epam.rd.autocode.spring.project.MapStruct.OrderMapper;
-import org.mapstruct.Mapper;
+import com.epam.rd.autocode.spring.project.mapper.BookMapper;
+import com.epam.rd.autocode.spring.project.mapper.ClientMapper;
+import com.epam.rd.autocode.spring.project.mapper.EmployeeMapper;
+import com.epam.rd.autocode.spring.project.mapper.OrderMapper;
 import org.mapstruct.factory.Mappers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
