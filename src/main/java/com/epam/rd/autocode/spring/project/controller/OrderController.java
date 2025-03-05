@@ -2,6 +2,8 @@ package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.dto.OrderDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
+import com.epam.rd.autocode.spring.project.model.Employee;
+import com.epam.rd.autocode.spring.project.service.BookPriceService;
 import com.epam.rd.autocode.spring.project.service.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,10 +16,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/orders")
@@ -30,6 +35,9 @@ public class OrderController {
 
     @Autowired
     private MessageSource messageSource;
+
+    @Autowired
+    private BookPriceService bookPriceService;
 
     @GetMapping("/client/{clientEmail}")
     public String getOrdersByClient(@PathVariable String clientEmail, Model model, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
@@ -83,9 +91,32 @@ public class OrderController {
     @GetMapping
     @PreAuthorize("hasRole('EMPLOYEE')")
     public String getAllOrders(Model model) {
-        logger.info("Employee accessing all orders");
+        String employeeEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         List<OrderDTO> orders = orderService.getAllOrders();
-        model.addAttribute("orders", orders);
+
+        List<OrderDTO> ordersWithPrices = orders.stream()
+                .map(order -> {
+                    BigDecimal totalPrice = BigDecimal.ZERO;
+                    if (order.getBookItems() != null && !order.getBookItems().isEmpty()) {
+                        totalPrice = order.getBookItems().stream()
+                                .map(item -> {
+                                    try {
+                                        BigDecimal bookPrice = bookPriceService.getBookPrice(item.getBookName().trim());
+                                        return bookPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
+                                    } catch (Exception e) {
+                                        return BigDecimal.ZERO;
+                                    }
+                                })
+                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                        order.setPrice(totalPrice);
+                    }
+                    return order;
+                })
+                .collect(Collectors.toList());
+
+        List<Employee> employees = orderService.getAllEmployees();
+        model.addAttribute("orders", ordersWithPrices); // Передача заказов в модель
+        model.addAttribute("employees", employees); // Передача списка сотрудников в модель
         return "orders";
     }
 

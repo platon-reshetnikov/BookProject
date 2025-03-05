@@ -9,25 +9,32 @@ import com.epam.rd.autocode.spring.project.model.Order;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.repo.OrderRepository;
+import com.epam.rd.autocode.spring.project.service.BookPriceService;
 import com.epam.rd.autocode.spring.project.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
+    private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
+
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
     private final ClientRepository clientRepository;
     private final EmployeeRepository employeeRepository;
+    private final BookPriceService bookPriceService;
 
     @Override
     public List<OrderDTO> getOrdersByClient(String clientEmail) {
@@ -62,6 +69,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderMapper.toEntity(orderDTO);
         order.setClient(client);
         order.setEmployee(employee);
+        order.setPrice(orderDTO.getPrice()); // Используем рассчитанную цену из orderDTO
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toDTO(savedOrder);
     }
@@ -100,5 +108,35 @@ public class OrderServiceImpl implements OrderService {
         Optional<Order> orderOptional = orderRepository.findByClientEmailAndOrderDate(clientEmail, orderDate);
         Order order = orderOptional.orElseThrow(() -> new NotFoundException("Order not found for client " + clientEmail + " and date " + orderDate));
         return orderMapper.toDTO(order);
+    }
+
+    @Override
+    public List<Employee> getAllEmployees() {
+        logger.debug("Fetching all employees");
+        List<Employee> employees = employeeRepository.findAll();
+        logger.debug("Found {} employees", employees.size());
+        return employees;
+    }
+
+    @Override
+    public OrderDTO calculateOrderPrice(OrderDTO orderDTO) {
+        if (orderDTO == null || orderDTO.getBookItems() == null || orderDTO.getBookItems().isEmpty()) {
+            orderDTO.setPrice(BigDecimal.ZERO);
+            return orderDTO;
+        }
+
+        BigDecimal totalPrice = orderDTO.getBookItems().stream()
+                .map(item -> {
+                    try {
+                        BigDecimal bookPrice = bookPriceService.getBookPrice(item.getBookName().trim());
+                        return bookPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
+                    } catch (Exception e) {
+                        return BigDecimal.ZERO;
+                    }
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        orderDTO.setPrice(totalPrice);
+        return orderDTO;
     }
 }

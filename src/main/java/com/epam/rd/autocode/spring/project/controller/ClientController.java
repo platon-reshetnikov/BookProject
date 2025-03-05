@@ -200,12 +200,10 @@ public class ClientController {
     @PreAuthorize("hasRole('CLIENT')")
     public String submitOrder(Model model) {
         String clientEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        logger.info("Client {} submitting order from basket", clientEmail);
 
         try {
             clientService.getClientByEmail(clientEmail);
         } catch (NotFoundException e) {
-            logger.warn("Client {} not found in database, possibly deleted", clientEmail);
             model.addAttribute("errorMessage", "Your account no longer exists. Please log in again.");
             return "redirect:/login?error";
         }
@@ -228,15 +226,17 @@ public class ClientController {
             orderDTO.setClientEmail(clientEmail);
             orderDTO.setEmployeeEmail(employeeEmail);
             orderDTO.setOrderDate(LocalDateTime.now());
-            orderDTO.setPrice(BigDecimal.ZERO);
-            orderDTO.setBookItems(basket);
+            orderDTO.setBookItems(basket); // Передаём bookItems из корзины
+            orderDTO.setPrice(BigDecimal.ZERO); // Цена будет рассчитана в OrderService
+
+            // Рассчитываем цену перед отправкой
+            orderDTO = orderService.calculateOrderPrice(orderDTO);
 
             orderService.addOrder(orderDTO);
             clientService.clearBasket(clientEmail);
             model.addAttribute("successMessage", "Your order has been submitted and assigned to " + employeeEmail);
             return "redirect:/clients/basket";
         } catch (Exception e) {
-            logger.error("Error submitting order for client {}: {}", clientEmail, e.getMessage());
             model.addAttribute("errorMessage", "Error submitting order: " + e.getMessage());
             return "basket";
         }

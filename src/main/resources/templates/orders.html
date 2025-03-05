@@ -30,9 +30,8 @@
     <thead>
     <tr>
       <th>Client Email</th>
-      <th>Employee Email</th>
       <th>Order Date</th>
-      <th>Price</th>
+      <th>Total Price</th>
       <th>Books</th>
       <th>Actions</th>
     </tr>
@@ -40,25 +39,29 @@
     <tbody>
     <tr th:each="order : ${orders}">
       <td th:text="${order.clientEmail}"></td>
-      <td th:text="${order.employeeEmail} ?: 'Not assigned'"></td>
-      <td th:text="${order.orderDate}"></td>
-      <td th:text="${order.price}"></td>
+      <td th:text="${order.orderDate} ?: 'N/A'"></td>
+      <td th:text="${#numbers.formatDecimal(order.price, 2, 2)}"></td>
       <td>
         <ul>
-          <li th:each="item : ${order.bookItems}" th:text="${item.bookName} + ' (Qty: ' + ${item.quantity} + ')'"></li>
+          <li th:each="item : ${order.bookItems}" th:text="${item.bookName} + ' - Price: ' + ${#numbers.formatDecimal(#service.getBookPrice(item.bookName.trim()), 2, 2)}"></li>
         </ul>
+        <span th:unless="${order.bookItems != null && !order.bookItems.isEmpty()}" th:text="'No books in order'"></span>
       </td>
       <td>
-        <form th:action="@{/orders/confirm}" method="post" style="display:inline;">
+        <form th:action="@{/orders/confirm}" method="post" style="display:inline;" th:if="${order.employeeEmail == null}">
           <input type="hidden" name="clientEmail" th:value="${order.clientEmail}"/>
-          <input type="hidden" name="orderDate" th:value="${order.orderDate}"/>
-          <input type="hidden" name="employeeEmail" th:value="${#authentication.name}"/>
-          <button type="submit" class="btn btn-success btn-sm" th:disabled="${order.employeeEmail != null}">Confirm</button>
+          <input type="hidden" name="orderDate" th:value="${order.orderDate != null ? order.orderDate.toString() : LocalDateTime.now().toString()}"/>
+          <select name="employeeEmail" class="form-select" style="display:inline; width: auto;" required>
+            <option value="">Select Employee</option>
+            <option th:each="employee : ${employees}" th:value="${employee.email}" th:text="${employee.email}"></option>
+          </select>
+          <button type="submit" class="btn btn-success btn-sm">Confirm</button>
         </form>
+        <span th:if="${order.employeeEmail != null}" th:text="'Assigned to ' + ${order.employeeEmail}"></span>
       </td>
     </tr>
     <tr th:unless="${orders != null && !orders.isEmpty()}">
-      <td colspan="6">No orders found</td>
+      <td colspan="5">No orders found</td>
     </tr>
     </tbody>
   </table>
