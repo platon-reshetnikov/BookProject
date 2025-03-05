@@ -37,7 +37,11 @@
         <div class="mb-3">
             <label for="publicationDate" class="form-label">Publication Date</label>
             <input type="date" class="form-control" id="publicationDate" th:field="*{publicationDate}" required />
-            <div class="text-danger" th:errors="*{publicationDate}"></div>
+
+            <!-- Show validation error messages if there are any -->
+            <div th:if="${#fields.hasErrors('publicationDate')}" class="text-danger">
+                <small th:errors="*{publicationDate}"></small>
+            </div>
         </div>
         <div class="mb-3">
             <label for="author" class="form-label">Author</label>

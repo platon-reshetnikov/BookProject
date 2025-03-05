@@ -2,6 +2,7 @@ package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
+import com.epam.rd.autocode.spring.project.mapper.UserWrapper;
 import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.model.Employee;
 import com.epam.rd.autocode.spring.project.service.impl.UserServiceImpl;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import java.time.format.DateTimeFormatter;
 
 @Controller
 @RequestMapping("/profile")
@@ -51,27 +53,32 @@ public class ProfileController {
         String email = authentication.getName();
         logger.info("Editing profile form for user: {}, Roles: {}", email, authentication.getAuthorities());
 
+        UserWrapper userWrapper = new UserWrapper();
+
         if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CLIENT"))) {
             Client client = userService.getClientByEmail(email);
             ClientDTO clientDTO = new ClientDTO(client.getEmail(), client.getPassword(), client.getName(), client.getBalance());
             logger.info("ClientDTO created: {}", clientDTO);
-            model.addAttribute("user", clientDTO);
+            userWrapper.setClientDTO(clientDTO);
             model.addAttribute("userType", "client");
         } else if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_EMPLOYEE"))) {
             Employee employee = userService.getEmployeeByEmail(email);
             EmployeeDTO employeeDTO = new EmployeeDTO(employee.getEmail(), employee.getPassword(), employee.getName(), employee.getPhone(), employee.getBirthDate());
             logger.info("EmployeeDTO created: {}", employeeDTO);
-            model.addAttribute("user", employeeDTO);
+            String formattedBirthDate = employee.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            model.addAttribute("formattedBirthDate", formattedBirthDate);
+            userWrapper.setEmployeeDTO(employeeDTO);
             model.addAttribute("userType", "employee");
         }
+
+        model.addAttribute("userWrapper", userWrapper);
         return "edit-profile";
     }
 
     @PostMapping("/edit")
     public String saveProfile(
             @RequestParam("userType") String userType,
-            @ModelAttribute("user") ClientDTO clientDTO,  // Для клиента
-            @ModelAttribute("user") EmployeeDTO employeeDTO, // Для сотрудника
+            @ModelAttribute("userWrapper") UserWrapper userWrapper,
             BindingResult bindingResult,
             Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -83,35 +90,47 @@ public class ProfileController {
         logger.info("Saving profile for user: {}, userType: {}", email, userType);
 
         if ("client".equals(userType)) {
+            ClientDTO clientDTO = userWrapper.getClientDTO();
+            if (clientDTO == null) {
+                logger.error("clientDTO is null for user: {}", email);
+                model.addAttribute("error", "Client data is missing.");
+                return "edit-profile";
+            }
+
             if (bindingResult.hasErrors()) {
                 logger.error("Client validation errors: {}", bindingResult.getAllErrors());
-                model.addAttribute("user", clientDTO);
+                model.addAttribute("userWrapper", userWrapper);
                 model.addAttribute("userType", userType);
                 return "edit-profile";
             }
+
             try {
                 userService.updateClient(email, clientDTO);
             } catch (Exception e) {
                 logger.error("Error saving client profile: {}", e.getMessage());
                 model.addAttribute("error", e.getMessage());
-                model.addAttribute("user", clientDTO);
-                model.addAttribute("userType", userType);
                 return "edit-profile";
             }
         } else if ("employee".equals(userType)) {
+            EmployeeDTO employeeDTO = userWrapper.getEmployeeDTO();
+            if (employeeDTO == null) {
+                logger.error("employeeDTO is null for user: {}", email);
+                model.addAttribute("error", "Employee data is missing.");
+                return "edit-profile";
+            }
+
             if (bindingResult.hasErrors()) {
                 logger.error("Employee validation errors: {}", bindingResult.getAllErrors());
-                model.addAttribute("user", employeeDTO);
+                model.addAttribute("userWrapper", userWrapper);
                 model.addAttribute("userType", userType);
                 return "edit-profile";
             }
+
             try {
                 userService.updateEmployee(email, employeeDTO);
             } catch (Exception e) {
                 logger.error("Error saving employee profile: {}", e.getMessage());
                 model.addAttribute("error", e.getMessage());
-                model.addAttribute("user", employeeDTO);
-                model.addAttribute("userType", userType);
                 return "edit-profile";
             }
         } else {

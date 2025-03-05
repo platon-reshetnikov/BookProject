@@ -116,19 +116,35 @@ public class BookController {
 
     @PostMapping("/update")
     @PreAuthorize("hasRole('EMPLOYEE')")
-    public String updateBook(@Valid @ModelAttribute("book") BookDTO bookDTO, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
-        logger.info("User: {}, Roles: {}, Updating book: {}",
-                SecurityContextHolder.getContext().getAuthentication().getName(),
-                SecurityContextHolder.getContext().getAuthentication().getAuthorities(),
-                bookDTO);
+    public String updateBook(
+            @Valid @ModelAttribute("book") BookDTO bookDTO,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes) {
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
+
+        logger.info("User: {}, Roles: {}, Updating book: {}", username, roles, bookDTO);
+
         if (bindingResult.hasErrors()) {
             logger.error("Validation errors: {}", bindingResult.getAllErrors());
             return "book-form";
         }
+
+        // Ensure proper date format before updating the book
+        if (bookDTO.getPublicationDate() != null) {
+            logger.info("Publication Date: {}", bookDTO.getPublicationDate());
+        } else {
+            logger.warn("Publication Date is null for book: {}", bookDTO.getName());
+        }
+
         bookService.updateBookByName(bookDTO.getName(), bookDTO);
+
+        // Fetch locale and display localized success message
         Locale locale = LocaleContextHolder.getLocale();
         String message = messageSource.getMessage("book.updated", new Object[]{bookDTO.getName()}, locale);
         redirectAttributes.addFlashAttribute("successMessage", message);
+
         return "redirect:/books";
     }
 

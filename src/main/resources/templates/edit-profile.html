@@ -11,45 +11,63 @@
 
   <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-  <!-- Отладка -->
-  <p>User: <span th:text="${user}"></span></p>
+  <!-- Debugging -->
   <p>User Type: <span th:text="${userType}"></span></p>
 
-  <form th:action="@{/profile/edit}" th:object="${user}" method="post" class="needs-validation" novalidate>
+  <form th:action="@{/profile/edit}" th:object="${userWrapper}" method="post" class="needs-validation" novalidate>
     <input type="hidden" name="userType" th:value="${userType}" />
-    <div class="mb-3">
-      <label for="email" class="form-label">Email</label>
-      <input type="email" class="form-control" id="email" th:field="*{email}" readonly />
-      <div class="text-danger" th:errors="*{email}"></div>
-    </div>
-    <div class="mb-3">
-      <label for="name" class="form-label">Name</label>
-      <input type="text" class="form-control" id="name" th:field="*{name}" required />
-      <div class="text-danger" th:errors="*{name}"></div>
-    </div>
-    <div class="mb-3">
-      <label for="password" class="form-label">Password</label>
-      <input type="password" class="form-control" id="password" th:field="*{password}" required />
-      <div class="text-danger" th:errors="*{password}"></div>
+
+    <div th:if="${userType == 'client'}">
+      <div class="mb-3">
+        <label for="client-email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="client-email" th:field="*{clientDTO.email}" readonly />
+        <div class="text-danger" th:errors="*{clientDTO.email}"></div>
+      </div>
+      <div class="mb-3">
+        <label for="client-name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="client-name" th:field="*{clientDTO.name}" required />
+        <div class="text-danger" th:errors="*{clientDTO.name}"></div>
+      </div>
+      <div class="mb-3">
+        <label for="client-password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="client-password" th:field="*{clientDTO.password}" required />
+        <div class="text-danger" th:errors="*{clientDTO.password}"></div>
+      </div>
+      <div class="mb-3">
+        <label for="client-balance" class="form-label">Balance</label>
+        <input type="number" step="0.01" class="form-control" id="client-balance" th:field="*{clientDTO.balance}" required />
+        <div class="text-danger" th:errors="*{clientDTO.balance}"></div>
+      </div>
     </div>
 
-    <!-- Поля для клиента -->
-    <div th:if="${userType == 'client'}" class="mb-3">
-      <label for="balance" class="form-label">Balance</label>
-      <input type="number" step="0.01" class="form-control" id="balance" th:field="*{balance}" required />
-      <div class="text-danger" th:errors="*{balance}"></div>
-    </div>
-
-    <!-- Поля для сотрудника -->
-    <div th:if="${userType == 'employee'}" class="mb-3">
-      <label for="phone" class="form-label">Phone</label>
-      <input type="text" class="form-control" id="phone" th:field="*{phone}" required />
-      <div class="text-danger" th:errors="*{phone}"></div>
-    </div>
-    <div th:if="${userType == 'employee'}" class="mb-3">
-      <label for="birthDate" class="form-label">Birth Date</label>
-      <input type="date" class="form-control" id="birthDate" th:field="*{birthDate}" required />
-      <div class="text-danger" th:errors="*{birthDate}"></div>
+    <div th:if="${userType == 'employee'}">
+      <div class="mb-3">
+        <label for="employee-email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="employee-email" th:field="*{employeeDTO.email}" readonly />
+        <div class="text-danger" th:errors="*{employeeDTO.email}"></div>
+      </div>
+      <div class="mb-3">
+        <label for="employee-name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="employee-name" th:field="*{employeeDTO.name}" required />
+        <div class="text-danger" th:errors="*{employeeDTO.name}"></div>
+      </div>
+      <div class="mb-3">
+        <label for="employee-password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="employee-password" th:field="*{employeeDTO.password}" required />
+        <div class="text-danger" th:errors="*{employeeDTO.password}"></div>
+      </div>
+      <div class="mb-3">
+        <label for="employee-phone" class="form-label">Phone</label>
+        <input type="text" class="form-control" id="employee-phone" th:field="*{employeeDTO.phone}" required />
+        <div class="text-danger" th:errors="*{employeeDTO.phone}"></div>
+      </div>
+      <div class="mb-3">
+        <label for="employee-birthDate" class="form-label">Birth Date</label>
+        <input type="date" class="form-control" id="employee-birthDate"
+               th:field="*{employeeDTO.birthDate}" required
+               th:value="${formattedBirthDate}" />
+        <div class="text-danger" th:errors="*{employeeDTO.birthDate}"></div>
+      </div>
     </div>
 
     <button type="submit" class="btn btn-primary">Save Changes</button>

@@ -2,6 +2,7 @@ package com.epam.rd.autocode.spring.project.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
@@ -27,5 +28,6 @@ public class EmployeeDTO {
 
     @NotNull(message = "Birth date cannot be null")
     @Past(message = "Birth date must be in the past")
+    @DateTimeFormat(pattern = "yyyy-MM-dd") // Ensure correct formatting
     private LocalDate birthDate;
 }
