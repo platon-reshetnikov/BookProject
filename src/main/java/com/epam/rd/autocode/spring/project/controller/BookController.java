@@ -158,11 +158,13 @@ public class BookController {
         try {
             bookService.deleteBookByName(name);
             Locale locale = LocaleContextHolder.getLocale();
-            String message = messageSource.getMessage("book.deleted", new Object[]{name}, locale);
+            String message = messageSource.getMessage("book.deleted", new Object[]{name},
+                    "Book " + name + " has been deleted successfully", locale);
             redirectAttributes.addFlashAttribute("successMessage", message);
         } catch (NotFoundException e) {
             Locale locale = LocaleContextHolder.getLocale();
-            String message = messageSource.getMessage("book.not.found", new Object[]{name}, locale);
+            String message = messageSource.getMessage("book.not.found", new Object[]{name},
+                    "Book not found with name: " + name, locale);
             redirectAttributes.addFlashAttribute("errorMessage", message);
         }
         return "redirect:/books";
