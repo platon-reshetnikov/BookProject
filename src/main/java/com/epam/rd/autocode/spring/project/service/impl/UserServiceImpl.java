@@ -33,6 +33,7 @@ public class UserServiceImpl implements UserDetailsService {
     @Autowired
     private ClientService clientService;
 
+
     public UserServiceImpl(ClientRepository clientRepository, EmployeeRepository employeeRepository) {
         this.clientRepository = clientRepository;
         this.employeeRepository = employeeRepository;
@@ -100,5 +101,50 @@ public class UserServiceImpl implements UserDetailsService {
 
         logger.warn("User not found with email: {}", email);
         throw new UsernameNotFoundException("User not found with email: " + email);
+    }
+
+    // Новый метод для добавления клиента
+    public void addClient(ClientDTO clientDTO) {
+        logger.info("Registering new client with email: {}", clientDTO.getEmail());
+
+        // Проверка на существование клиента с таким email
+        if (clientRepository.existsByEmail(clientDTO.getEmail())) {
+            logger.error("Client with email {} already exists", clientDTO.getEmail());
+            throw new RuntimeException("Client with email " + clientDTO.getEmail() + " already exists");
+        }
+
+        // Создаём нового клиента
+        Client client = new Client();
+        client.setEmail(clientDTO.getEmail());
+        client.setPassword(clientDTO.getPassword());
+        client.setName(clientDTO.getName());
+        client.setBalance(clientDTO.getBalance());
+
+        // Сохраняем клиента в базу данных
+        clientRepository.save(client);
+        logger.info("Client registered successfully: {}", client);
+    }
+
+    // Новый метод для добавления сотрудника
+    public void addEmployee(EmployeeDTO employeeDTO) {
+        logger.info("Registering new employee with email: {}", employeeDTO.getEmail());
+
+        // Проверка на существование сотрудника с таким email
+        if (employeeRepository.existsByEmail(employeeDTO.getEmail())) {
+            logger.error("Employee with email {} already exists", employeeDTO.getEmail());
+            throw new RuntimeException("Employee with email " + employeeDTO.getEmail() + " already exists");
+        }
+
+        // Создаём нового сотрудника
+        Employee employee = new Employee();
+        employee.setEmail(employeeDTO.getEmail());
+        employee.setPassword(employeeDTO.getPassword());
+        employee.setName(employeeDTO.getName());
+        employee.setPhone(employeeDTO.getPhone());
+        employee.setBirthDate(employeeDTO.getBirthDate());
+
+        // Сохраняем сотрудника в базу данных
+        employeeRepository.save(employee);
+        logger.info("Employee registered successfully: {}", employee);
     }
 }
