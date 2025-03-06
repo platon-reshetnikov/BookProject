@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -43,7 +44,7 @@ public class OrderServiceImpl implements OrderService {
         List<Order> orders = orderRepository.findByClientEmail(clientEmail);
         return orders.stream()
                 .map(orderMapper::toDTO)
-                .filter(orderDTO -> orderDTO != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -54,7 +55,7 @@ public class OrderServiceImpl implements OrderService {
         List<Order> orders = orderRepository.findByEmployeeEmail(employeeEmail);
         return orders.stream()
                 .map(orderMapper::toDTO)
-                .filter(orderDTO -> orderDTO != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -69,7 +70,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderMapper.toEntity(orderDTO);
         order.setClient(client);
         order.setEmployee(employee);
-        order.setPrice(orderDTO.getPrice()); // Используем рассчитанную цену из orderDTO
+        order.setPrice(orderDTO.getPrice());
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toDTO(savedOrder);
     }
@@ -79,7 +80,7 @@ public class OrderServiceImpl implements OrderService {
         List<Order> orders = orderRepository.findByOrderDate(orderDate);
         return orders.stream()
                 .map(orderMapper::toDTO)
-                .filter(orderDTO -> orderDTO != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -90,10 +91,10 @@ public class OrderServiceImpl implements OrderService {
                 .map(order -> {
                     OrderDTO dto = orderMapper.toDTO(order);
                     if (dto.getOrderDate() == null) {
-                        dto.setOrderDate(LocalDateTime.now()); // Устанавливаем дату, если null
+                        dto.setOrderDate(LocalDateTime.now());
                     }
                     if (dto.getClientEmail() == null && order.getClient() != null) {
-                        dto.setClientEmail(order.getClient().getEmail()); // Устанавливаем clientEmail, если null
+                        dto.setClientEmail(order.getClient().getEmail());
                     }
                     return dto;
                 })

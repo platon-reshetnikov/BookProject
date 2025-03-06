@@ -63,28 +63,4 @@ public class BookServiceImpl implements BookService {
         Book savedBook = bookRepository.save(book);
         return bookMapper.toDTO(savedBook);
     }
-
-    @Override
-    public List<BookDTO> getBooksByGenre(String genre) {
-        List<Book> books = bookRepository.findByGenre(genre);
-        return books.stream()
-                .map(bookMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<BookDTO> getBooksByAgeGroup(AgeGroup ageGroup) {
-        List<Book> books = bookRepository.findByAgeGroup(ageGroup);
-        return books.stream()
-                .map(bookMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<BookDTO> getBooksByLanguage(Language language) {
-        List<Book> books = bookRepository.findByLanguage(language);
-        return books.stream()
-                .map(bookMapper::toDTO)
-                .collect(Collectors.toList());
-    }
 }

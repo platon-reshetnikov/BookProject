@@ -95,7 +95,7 @@ public class OrderController {
         List<OrderDTO> orders = orderService.getAllOrders();
 
         List<OrderDTO> ordersWithPrices = orders.stream()
-                .map(order -> {
+                .peek(order -> {
                     BigDecimal totalPrice = BigDecimal.ZERO;
                     if (order.getBookItems() != null && !order.getBookItems().isEmpty()) {
                         totalPrice = order.getBookItems().stream()
@@ -110,7 +110,6 @@ public class OrderController {
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
                         order.setPrice(totalPrice);
                     }
-                    return order;
                 })
                 .collect(Collectors.toList());
 

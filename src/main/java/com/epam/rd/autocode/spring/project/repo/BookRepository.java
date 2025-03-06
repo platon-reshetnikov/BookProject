@@ -13,12 +13,6 @@ import java.util.Optional;
 
 @Repository
 public interface BookRepository extends JpaRepository<Book,Long> {
-
     Optional<Book> findByName(String name);
 
-    List<Book> findByGenre(String genre);
-
-    List<Book> findByAgeGroup(AgeGroup ageGroup);
-
-    List<Book> findByLanguage(Language language);
 }

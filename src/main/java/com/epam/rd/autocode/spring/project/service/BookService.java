@@ -18,9 +18,4 @@ public interface BookService {
 
     BookDTO addBook(BookDTO book);
 
-    List<BookDTO> getBooksByGenre(String genre);
-
-    List<BookDTO> getBooksByAgeGroup(AgeGroup ageGroup);
-
-    List<BookDTO> getBooksByLanguage(Language language);
 }

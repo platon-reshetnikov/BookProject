@@ -25,7 +25,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 import java.util.Locale;
 
-@Controller // Use @Controller instead of @RestController for HTML rendering
+@Controller
 @RequestMapping("/books")
 public class BookController {
 
@@ -131,7 +131,6 @@ public class BookController {
             return "book-form";
         }
 
-        // Ensure proper date format before updating the book
         if (bookDTO.getPublicationDate() != null) {
             logger.info("Publication Date: {}", bookDTO.getPublicationDate());
         } else {
@@ -140,7 +139,6 @@ public class BookController {
 
         bookService.updateBookByName(bookDTO.getName(), bookDTO);
 
-        // Fetch locale and display localized success message
         Locale locale = LocaleContextHolder.getLocale();
         String message = messageSource.getMessage("book.updated", new Object[]{bookDTO.getName()}, locale);
         redirectAttributes.addFlashAttribute("successMessage", message);
@@ -168,32 +166,5 @@ public class BookController {
             redirectAttributes.addFlashAttribute("errorMessage", message);
         }
         return "redirect:/books";
-    }
-
-    @GetMapping("/genre/{genre}")
-    @PreAuthorize("hasAnyRole('USER', 'EMPLOYEE', 'CUSTOMER')")
-    public ModelAndView getBooksByGenre(@PathVariable String genre) {
-        List<BookDTO> books = bookService.getBooksByGenre(genre);
-        ModelAndView modelAndView = new ModelAndView("books");
-        modelAndView.addObject("books", books);
-        return modelAndView;
-    }
-
-    @GetMapping("/age-group/{ageGroup}")
-    @PreAuthorize("hasAnyRole('USER', 'EMPLOYEE', 'CUSTOMER')")
-    public ModelAndView getBooksByAgeGroup(@PathVariable AgeGroup ageGroup) {
-        List<BookDTO> books = bookService.getBooksByAgeGroup(ageGroup);
-        ModelAndView modelAndView = new ModelAndView("books");
-        modelAndView.addObject("books", books);
-        return modelAndView;
-    }
-
-    @GetMapping("/language/{language}")
-    @PreAuthorize("hasAnyRole('USER', 'EMPLOYEE', 'CUSTOMER')")
-    public ModelAndView getBooksByLanguage(@PathVariable Language language) {
-        List<BookDTO> books = bookService.getBooksByLanguage(language);
-        ModelAndView modelAndView = new ModelAndView("books");
-        modelAndView.addObject("books", books);
-        return modelAndView;
     }
 }

@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,7 +23,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Отключаем CSRF
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/books", "/books/{name}").authenticated()
                         .requestMatchers("/profile", "/profile/edit").authenticated()
@@ -39,8 +40,8 @@ public class SecurityConfig {
                         .requestMatchers("/clients/manage", "/clients/block/{email}", "/clients/unblock/{email}", "/clients/list").hasRole("EMPLOYEE")
                         .anyRequest().authenticated()
                 )
-                .formLogin(form -> form // Включаем форму входа
-                        .loginPage("/login") // Страница входа
+                .formLogin(form -> form
+                        .loginPage("/login")
                         .defaultSuccessUrl("/books", true)
                         .permitAll()
                 )
@@ -55,24 +56,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
     }
-
-//    @Bean
-//    public UserDetailsService userDetailsService() {
-//        UserDetails user = User.withUsername("user")
-//                .password(passwordEncoder().encode("password")) // Пароль: password
-//                .roles("USER") // Зарегистрированный пользователь
-//                .build();
-//
-//        UserDetails client = User.withUsername("client")
-//                .password(passwordEncoder().encode("password")) // Пароль: password
-//                .roles("CLIENT") // Клиент
-//                .build();
-//
-//        UserDetails employee = User.withUsername("employee")
-//                .password(passwordEncoder().encode("password")) // Пароль: password
-//                .roles("EMPLOYEE") // Сотрудник
-//                .build();
-//
-//        return new InMemoryUserDetailsManager(user, client, employee);
-//    }
 }

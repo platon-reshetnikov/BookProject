@@ -31,7 +31,7 @@ public class UserServiceImpl implements UserDetailsService {
     private EmployeeRepository employeeRepository;
 
     @Autowired
-    private ClientService clientService; // Добавляем зависимость
+    private ClientService clientService;
 
     public UserServiceImpl(ClientRepository clientRepository, EmployeeRepository employeeRepository) {
         this.clientRepository = clientRepository;

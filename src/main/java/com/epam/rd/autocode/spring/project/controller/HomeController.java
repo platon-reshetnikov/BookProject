@@ -23,14 +23,8 @@ public class HomeController {
     public String loginPage(@RequestHeader(name = "Accept-Language", required = false) String acceptLanguage,
                             Model model) {
         Locale locale = parseLocale(acceptLanguage);
-
-        // Get localized message
         String welcomeMessage = messageSource.getMessage("welcome.message", null, "Welcome!", locale);
-
-        // Add attributes to the model for Thymeleaf
         model.addAttribute("welcomeMessage", welcomeMessage);
-
-        // Return the Thymeleaf view name (login.html)
         return "login";
     }
 

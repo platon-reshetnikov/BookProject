@@ -16,11 +16,11 @@ public interface OrderService {
 
     List<OrderDTO> getOrdersByOrderDate(LocalDateTime orderDate);
 
-    OrderDTO confirmOrder(String clientEmail, LocalDateTime orderDate, String employeeEmail); // Обновленный метод
+    OrderDTO confirmOrder(String clientEmail, LocalDateTime orderDate, String employeeEmail);
 
     List<OrderDTO> getAllOrders();
 
-    OrderDTO findOrderByClientEmailAndOrderDate(String clientEmail, LocalDateTime orderDate); // Новый метод
+    OrderDTO findOrderByClientEmailAndOrderDate(String clientEmail, LocalDateTime orderDate);
 
     List<Employee> getAllEmployees();
 

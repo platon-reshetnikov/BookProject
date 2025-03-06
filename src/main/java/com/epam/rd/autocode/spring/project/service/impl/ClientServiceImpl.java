@@ -27,9 +27,7 @@ public class ClientServiceImpl implements ClientService {
     private final ClientRepository clientRepository;
     private final ClientMapper clientMapper;
 
-    // Временное хранилище статуса блокировки
     private final Map<String, Boolean> clientBlockedStatus = new HashMap<>();
-
     private final Map<String, List<BookItemDTO>> clientBaskets = new HashMap<>();
 
     @Override

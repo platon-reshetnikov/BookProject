@@ -46,51 +46,6 @@ public class ClientController {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-
-    @GetMapping
-    public ResponseEntity<List<ClientDTO>> getAllClientsRest() {
-        return ResponseEntity.ok(clientService.getAllClients());
-    }
-
-    @GetMapping("/{email}")
-    public ResponseEntity<?> getClientByEmailRest(@PathVariable String email) {
-        ClientDTO client = clientService.getClientByEmail(email);
-        if (client == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client not found with email: " + email);
-        }
-        return ResponseEntity.ok(client);
-    }
-
-    @PostMapping
-    public ResponseEntity<?> addClientRest(@Valid @RequestBody ClientDTO clientDTO) {
-        ClientDTO savedClient = clientService.addClient(clientDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).header("X-Message", "Client added: " + savedClient.getEmail()).body(savedClient);
-    }
-
-    @PutMapping("/{email}")
-    public ResponseEntity<?> updateClientRest(@PathVariable String email, @Valid @RequestBody ClientDTO clientDTO) {
-        ClientDTO updatedClient = clientService.updateClientByEmail(email, clientDTO);
-        if (updatedClient == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client not found with email: " + email);
-        }
-        return ResponseEntity.ok().header("X-Message", "Client updated: " + updatedClient.getEmail()).body(updatedClient);
-    }
-
-    @DeleteMapping("/{email}")
-    public ResponseEntity<?> deleteClientRest(@PathVariable String email) {
-        try {
-            clientService.deleteClientByEmail(email);
-            return ResponseEntity.noContent().build();
-        } catch (NotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client not found with email: " + email);
-        }
-    }
-
-    @GetMapping("/balance-greater-than/{balance}")
-    public ResponseEntity<List<ClientDTO>> getClientsWithBalanceGreaterThanRest(@PathVariable BigDecimal balance) {
-        return ResponseEntity.ok(clientService.getClientsWithBalanceGreaterThan(balance));
-    }
-
     @GetMapping("/manage")
     @PreAuthorize("hasRole('EMPLOYEE')")
     public String getAllClients(Model model) {
@@ -187,12 +142,11 @@ public class ClientController {
         logger.info("Client {} deleting their account", clientEmail);
         try {
             clientService.deleteClientByEmail(clientEmail);
-            // Выполняем выход после удаления аккаунта
             new SecurityContextLogoutHandler().logout(request, response, SecurityContextHolder.getContext().getAuthentication());
-            return "redirect:/login?deleted"; // Перенаправляем на страницу логина с параметром
+            return "redirect:/login?deleted";
         } catch (NotFoundException e) {
             model.addAttribute("errorMessage", "Client not found: " + clientEmail);
-            return "profile"; // Возвращаем на профиль в случае ошибки
+            return "profile";
         }
     }
 
@@ -226,10 +180,9 @@ public class ClientController {
             orderDTO.setClientEmail(clientEmail);
             orderDTO.setEmployeeEmail(employeeEmail);
             orderDTO.setOrderDate(LocalDateTime.now());
-            orderDTO.setBookItems(basket); // Передаём bookItems из корзины
-            orderDTO.setPrice(BigDecimal.ZERO); // Цена будет рассчитана в OrderService
+            orderDTO.setBookItems(basket);
+            orderDTO.setPrice(BigDecimal.ZERO);
 
-            // Рассчитываем цену перед отправкой
             orderDTO = orderService.calculateOrderPrice(orderDTO);
 
             orderService.addOrder(orderDTO);
