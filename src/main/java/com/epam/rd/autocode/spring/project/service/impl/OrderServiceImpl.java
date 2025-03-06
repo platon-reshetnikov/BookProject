@@ -87,8 +87,16 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderDTO> getAllOrders() {
         List<Order> orders = orderRepository.findAll();
         return orders.stream()
-                .map(orderMapper::toDTO)
-                .filter(orderDTO -> orderDTO != null)
+                .map(order -> {
+                    OrderDTO dto = orderMapper.toDTO(order);
+                    if (dto.getOrderDate() == null) {
+                        dto.setOrderDate(LocalDateTime.now()); // Устанавливаем дату, если null
+                    }
+                    if (dto.getClientEmail() == null && order.getClient() != null) {
+                        dto.setClientEmail(order.getClient().getEmail()); // Устанавливаем clientEmail, если null
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
