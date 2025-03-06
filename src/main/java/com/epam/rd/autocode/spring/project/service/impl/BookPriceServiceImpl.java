@@ -1,7 +1,5 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
-
-import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.repo.BookRepository;
 import com.epam.rd.autocode.spring.project.service.BookPriceService;
@@ -27,7 +25,7 @@ public class BookPriceServiceImpl implements BookPriceService {
             return BigDecimal.ZERO;
         }
 
-        String normalizedBookName = bookName.trim(); // Убираем пробелы, сохраняя регистр, как в базе
+        String normalizedBookName = bookName.trim();
         return bookRepository.findByName(normalizedBookName)
                 .map(Book::getPrice)
                 .orElseGet(() -> {

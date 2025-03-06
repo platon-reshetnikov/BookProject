@@ -114,8 +114,8 @@ public class OrderController {
                 .collect(Collectors.toList());
 
         List<Employee> employees = orderService.getAllEmployees();
-        model.addAttribute("orders", ordersWithPrices); // Передача заказов в модель
-        model.addAttribute("employees", employees); // Передача списка сотрудников в модель
+        model.addAttribute("orders", ordersWithPrices);
+        model.addAttribute("employees", employees);
         return "orders";
     }
 
