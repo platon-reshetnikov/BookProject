@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -36,6 +37,6 @@ public class Order {
     private BigDecimal price;
 
     @NotNull(message = "Book items list cannot be null")
-    @OneToMany(mappedBy = "order")
-    private List<BookItem> bookItems;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BookItem> bookItems = new ArrayList<>();
 }

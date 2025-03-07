@@ -16,6 +16,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -116,6 +117,7 @@ public class OrderController {
         List<Employee> employees = orderService.getAllEmployees();
         model.addAttribute("orders", ordersWithPrices);
         model.addAttribute("employees", employees);
+        model.addAttribute("bookPriceService", bookPriceService);
         return "orders";
     }
 
@@ -124,13 +126,14 @@ public class OrderController {
     public String confirmOrder(@RequestParam("clientEmail") String clientEmail,
                                @RequestParam("orderDate") LocalDateTime orderDate,
                                @RequestParam("employeeEmail") String employeeEmail,
-                               Model model) {
+                               Model model,
+                               RedirectAttributes redirectAttributes) {
         logger.info("Employee {} confirming order for client {} at {}", employeeEmail, clientEmail, orderDate);
         try {
             orderService.confirmOrder(clientEmail, orderDate, employeeEmail);
-            model.addAttribute("successMessage", "Order confirmed successfully");
+            redirectAttributes.addFlashAttribute("successMessage", "Order confirmed successfully");
         } catch (NotFoundException e) {
-            model.addAttribute("errorMessage", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
         return "redirect:/orders";
     }

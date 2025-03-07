@@ -1,11 +1,12 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
+import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
+import com.epam.rd.autocode.spring.project.mapper.BookItemMapper;
 import com.epam.rd.autocode.spring.project.mapper.OrderMapper;
 import com.epam.rd.autocode.spring.project.dto.OrderDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
-import com.epam.rd.autocode.spring.project.model.Client;
-import com.epam.rd.autocode.spring.project.model.Employee;
-import com.epam.rd.autocode.spring.project.model.Order;
+import com.epam.rd.autocode.spring.project.model.*;
+import com.epam.rd.autocode.spring.project.repo.BookRepository;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.repo.OrderRepository;
@@ -13,6 +14,7 @@ import com.epam.rd.autocode.spring.project.service.BookPriceService;
 import com.epam.rd.autocode.spring.project.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -36,6 +38,9 @@ public class OrderServiceImpl implements OrderService {
     private final ClientRepository clientRepository;
     private final EmployeeRepository employeeRepository;
     private final BookPriceService bookPriceService;
+    //private final BookItemMapper bookItemMapper;
+    private final BookRepository bookRepository;
+    //private BookItemDTO bookItemDTO;
 
     @Override
     public List<OrderDTO> getOrdersByClient(String clientEmail) {
@@ -67,11 +72,34 @@ public class OrderServiceImpl implements OrderService {
         Employee employee = employeeRepository.findByEmail(orderDTO.getEmployeeEmail())
                 .orElseThrow(() -> new NotFoundException("Employee not found with email: " + orderDTO.getEmployeeEmail()));
 
+        // Преобразуем OrderDTO в Order
         Order order = orderMapper.toEntity(orderDTO);
         order.setClient(client);
         order.setEmployee(employee);
-        order.setPrice(orderDTO.getPrice());
+
+        // Устанавливаем связь между Order и BookItem
+        if (order.getBookItems() != null) {
+            for (BookItem bookItem : order.getBookItems()) {
+                if (bookItem.getBook() == null) {
+                    throw new IllegalStateException("Book is not set in BookItem: " + bookItem);
+                }
+                String bookName = bookItem.getBook().getName();
+                if (bookName == null || bookName.trim().isEmpty()) {
+                    throw new IllegalArgumentException("Book name cannot be null or empty in BookItem: " + bookItem);
+                }
+                Book book = bookRepository.findByName(bookName)
+                        .orElseThrow(() -> new NotFoundException("Book not found with name: " + bookName));
+                bookItem.setBook(book); // Устанавливаем книгу из базы данных
+                bookItem.setOrder(order); // Устанавливаем заказ
+            }
+        } else {
+            throw new IllegalArgumentException("Order must contain at least one book item");
+        }
+
+        // Сохраняем заказ
         Order savedOrder = orderRepository.save(order);
+
+        // Возвращаем DTO
         return orderMapper.toDTO(savedOrder);
     }
 
