@@ -9,18 +9,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.validation.Valid;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -41,58 +39,35 @@ public class OrderController {
     private BookPriceService bookPriceService;
 
     @GetMapping("/client/{clientEmail}")
-    public String getOrdersByClient(@PathVariable String clientEmail, Model model, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
+    public String getOrdersByClient(@PathVariable String clientEmail, Model model,
+                                    @RequestParam(name = "lang", required = false) String lang) {
         logger.info("Fetching orders for client: {}", clientEmail);
+        if (lang != null && !lang.isBlank()) {
+            logger.info("Переключение локали на: {} (из /orders/client/{})", lang, clientEmail);
+        } else {
+            logger.info("Использована локаль по умолчанию на /orders/client/{}: {}", clientEmail, Locale.getDefault());
+        }
         try {
             List<OrderDTO> orders = orderService.getOrdersByClient(clientEmail);
             model.addAttribute("orders", orders);
             model.addAttribute("clientEmail", clientEmail);
         } catch (NotFoundException e) {
-            model.addAttribute("errorMessage", e.getMessage());
+            Locale locale = LocaleContextHolder.getLocale();
+            String message = messageSource.getMessage("client.not.found", new Object[]{clientEmail}, locale);
+            model.addAttribute("errorMessage", message);
         }
         return "orders";
     }
 
-    @GetMapping("/employee/{employeeEmail}")
-    public String getOrdersByEmployee(@PathVariable String employeeEmail, Model model, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
-        logger.info("Fetching orders for employee: {}", employeeEmail);
-        try {
-            List<OrderDTO> orders = orderService.getOrdersByEmployee(employeeEmail);
-            model.addAttribute("orders", orders);
-            model.addAttribute("employeeEmail", employeeEmail);
-        } catch (NotFoundException e) {
-            model.addAttribute("errorMessage", e.getMessage());
-        }
-        return "employee-orders";
-    }
-
-    @PostMapping
-    public String addOrder(@Valid @ModelAttribute("order") OrderDTO orderDTO, Model model, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
-        logger.info("Adding order: {}", orderDTO);
-        try {
-            OrderDTO savedOrder = orderService.addOrder(orderDTO);
-            String message = messageSource.getMessage("order.added", new Object[]{savedOrder.getClientEmail()}, locale);
-            model.addAttribute("successMessage", message);
-            return "redirect:/orders/client/" + savedOrder.getClientEmail();
-        } catch (NotFoundException e) {
-            model.addAttribute("errorMessage", e.getMessage());
-            return "add-order";
-        }
-    }
-
-    @GetMapping("/order-date/{orderDate}")
-    public String getOrdersByOrderDate(@PathVariable String orderDate, Model model) {
-        logger.info("Fetching orders by date: {}", orderDate);
-        LocalDateTime parsedDate = LocalDateTime.parse(orderDate, DateTimeFormatter.ISO_DATE_TIME);
-        List<OrderDTO> orders = orderService.getOrdersByOrderDate(parsedDate);
-        model.addAttribute("orders", orders);
-        return "orders-by-date";
-    }
-
     @GetMapping
     @PreAuthorize("hasRole('EMPLOYEE')")
-    public String getAllOrders(Model model) {
+    public String getAllOrders(Model model, @RequestParam(name = "lang", required = false) String lang) {
         String employeeEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (lang != null && !lang.isBlank()) {
+            logger.info("Переключение локали на: {} (из /orders)", lang);
+        } else {
+            logger.info("Использована локаль по умолчанию на /orders: {}", Locale.getDefault());
+        }
         List<OrderDTO> orders = orderService.getAllOrders();
 
         List<OrderDTO> ordersWithPrices = orders.stream()
@@ -127,13 +102,23 @@ public class OrderController {
                                @RequestParam("orderDate") LocalDateTime orderDate,
                                @RequestParam("employeeEmail") String employeeEmail,
                                Model model,
-                               RedirectAttributes redirectAttributes) {
+                               RedirectAttributes redirectAttributes,
+                               @RequestParam(name = "lang", required = false) String lang) {
         logger.info("Employee {} confirming order for client {} at {}", employeeEmail, clientEmail, orderDate);
+        if (lang != null && !lang.isBlank()) {
+            logger.info("Переключение локали на: {} (из POST /orders/confirm)", lang);
+        } else {
+            logger.info("Использована локаль по умолчанию на POST /orders/confirm: {}", Locale.getDefault());
+        }
         try {
             orderService.confirmOrder(clientEmail, orderDate, employeeEmail);
-            redirectAttributes.addFlashAttribute("successMessage", "Order confirmed successfully");
+            Locale locale = LocaleContextHolder.getLocale();
+            String message = messageSource.getMessage("order.confirmed", null, locale);
+            redirectAttributes.addFlashAttribute("successMessage", message);
         } catch (NotFoundException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            Locale locale = LocaleContextHolder.getLocale();
+            String message = messageSource.getMessage("order.not.found", new Object[]{clientEmail, orderDate}, locale);
+            redirectAttributes.addFlashAttribute("errorMessage", message);
         }
         return "redirect:/orders";
     }

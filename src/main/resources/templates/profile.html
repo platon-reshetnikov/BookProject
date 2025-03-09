@@ -2,11 +2,11 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
-  <title>Profile</title>
+  <title th:text="#{profile.title}">Profile</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
   <style>
     body {
-      background-color: #f0f2f5; /* Лёгкий серо-голубой фон */
+      background-color: #f0f2f5;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #333333;
     }
@@ -16,16 +16,16 @@
       padding: 30px;
       border-radius: 15px;
       background-color: #ffffff;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Мягкая тень */
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .profile-container:hover {
       transform: translateY(-5px);
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); /* Усиленная тень при наведении */
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
     }
     .profile-container h2 {
       text-align: center;
-      color: #2c3e50; /* Тёмно-синий заголовок */
+      color: #2c3e50;
       margin-bottom: 25px;
       font-weight: 600;
     }
@@ -35,7 +35,7 @@
       color: #34495e;
     }
     .profile-details p strong {
-      color: #2980b9; /* Акцентный синий для заголовков */
+      color: #2980b9;
       margin-right: 10px;
     }
     .btn-group {
@@ -51,7 +51,7 @@
       transition: background-color 0.3s ease;
     }
     .btn-primary:hover {
-      background-color: #1f6a9e; /* Более тёмный синий при наведении */
+      background-color: #1f6a9e;
     }
     .btn-danger {
       background-color: #e74c3c;
@@ -60,7 +60,7 @@
       transition: background-color 0.3s ease;
     }
     .btn-danger:hover {
-      background-color: #c0392b; /* Более тёмный красный при наведении */
+      background-color: #c0392b;
     }
     .btn-secondary {
       background-color: #7f8c8d;
@@ -69,34 +69,51 @@
       transition: background-color 0.3s ease;
     }
     .btn-secondary:hover {
-      background-color: #6c757d; /* Более тёмный серый при наведении */
+      background-color: #6c757d;
     }
     .alert-danger {
       border-radius: 5px;
       text-align: center;
     }
+    .language-selector {
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .language-selector a {
+      margin: 0 0.5rem;
+      text-decoration: none;
+      color: #007bff;
+    }
+    .language-selector a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
 <div class="profile-container">
-  <h2>Your Profile</h2>
+  <div class="language-selector">
+    <a th:href="@{/profile(lang='en')}" th:text="#{lang.english}">English</a>
+    <a th:href="@{/profile(lang='de')}" th:text="#{lang.german}">Deutsch</a>
+  </div>
+
+  <h2 th:text="#{profile.title}">Your Profile</h2>
 
   <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
   <div class="profile-details">
-    <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
-    <p><strong>Name:</strong> <span th:text="${user.name}"></span></p>
-    <p th:if="${userType == 'client'}"><strong>Balance:</strong> <span th:text="${#numbers.formatDecimal(user.balance, 2, 2)}"></span></p>
-    <p th:if="${userType == 'employee'}"><strong>Phone:</strong> <span th:text="${user.phone}"></span></p>
-    <p th:if="${userType == 'employee'}"><strong>Birth Date:</strong> <span th:text="${#temporals.format(user.birthDate, 'yyyy-MM-dd')}"></span></p>
+    <p><strong th:text="#{profile.email}">Email:</strong> <span th:text="${user.email}"></span></p>
+    <p><strong th:text="#{profile.name}">Name:</strong> <span th:text="${user.name}"></span></p>
+    <p th:if="${userType == 'client'}"><strong th:text="#{profile.balance}">Balance:</strong> <span th:text="${#numbers.formatDecimal(user.balance, 2, 2)}"></span></p>
+    <p th:if="${userType == 'employee'}"><strong th:text="#{profile.phone}">Phone:</strong> <span th:text="${user.phone}"></span></p>
+    <p th:if="${userType == 'employee'}"><strong th:text="#{profile.birth.date}">Birth Date:</strong> <span th:text="${#temporals.format(user.birthDate, 'yyyy-MM-dd')}"></span></p>
   </div>
 
   <div class="btn-group">
-    <a th:href="@{/profile/edit}" class="btn btn-primary">Edit Profile</a>
+    <a th:href="@{/profile/edit}" class="btn btn-primary" th:text="#{profile.edit}">Edit Profile</a>
     <form th:action="@{/clients/delete}" method="post" style="display:inline;" sec:authorize="hasRole('CLIENT')" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.');">
-      <button type="submit" class="btn btn-danger">Delete Account</button>
+      <button type="submit" class="btn btn-danger" th:text="#{profile.delete.account}">Delete Account</button>
     </form>
-    <a th:href="@{/books}" class="btn btn-secondary">Back to Books</a>
+    <a th:href="@{/books}" class="btn btn-secondary" th:text="#{return.books}">Back to Books</a>
   </div>
 </div>
 </body>

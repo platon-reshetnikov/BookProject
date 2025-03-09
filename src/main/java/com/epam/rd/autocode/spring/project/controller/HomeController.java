@@ -6,6 +6,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Locale;
 
@@ -20,9 +21,17 @@ public class HomeController {
     }
 
     @GetMapping("/login")
-    public String loginPage(@RequestHeader(name = "Accept-Language", required = false) String acceptLanguage,
-                            Model model) {
-        Locale locale = parseLocale(acceptLanguage);
+    public String loginPage(
+            @RequestHeader(name = "Accept-Language", required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang,
+            Model model) {
+        Locale locale;
+        if (lang != null && !lang.isBlank()) {
+            locale = new Locale(lang);
+        } else {
+            locale = parseLocale(acceptLanguage);
+        }
+
         String welcomeMessage = messageSource.getMessage("welcome.message", null, "Welcome!", locale);
         model.addAttribute("welcomeMessage", welcomeMessage);
         return "login";

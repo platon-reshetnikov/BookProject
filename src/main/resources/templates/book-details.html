@@ -6,7 +6,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
   <style>
     body {
-      background-color: #f0f2f5; /* Лёгкий серо-голубой фон */
+      background-color: #f0f2f5;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #333333;
     }
@@ -16,16 +16,16 @@
       padding: 30px;
       border-radius: 15px;
       background-color: #ffffff;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Мягкая тень */
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .book-details-container:hover {
       transform: translateY(-5px);
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); /* Усиленная тень при наведении */
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
     }
     .book-details-container h2 {
       text-align: center;
-      color: #2c3e50; /* Тёмно-синий заголовок */
+      color: #2c3e50;
       margin-bottom: 25px;
       font-weight: 600;
     }
@@ -35,7 +35,7 @@
       color: #34495e;
     }
     .book-details-container p strong {
-      color: #2980b9; /* Акцентный синий для заголовков */
+      color: #2980b9;
       margin-right: 10px;
     }
     .button-group {
@@ -55,42 +55,59 @@
       background-color: #f0ad4e;
     }
     .btn-warning:hover {
-      background-color: #ec971f; /* Более тёмный оранжевый при наведении */
+      background-color: #ec971f;
     }
     .btn-danger {
       background-color: #d9534f;
     }
     .btn-danger:hover {
-      background-color: #c9302c; /* Более тёмный красный при наведении */
+      background-color: #c9302c;
     }
     .btn-secondary {
       background-color: #6c757d;
     }
     .btn-secondary:hover {
-      background-color: #5a6268; /* Более тёмный серый при наведении */
+      background-color: #5a6268;
+    }
+    .language-selector {
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .language-selector a {
+      margin: 0 0.5rem;
+      text-decoration: none;
+      color: #007bff;
+    }
+    .language-selector a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
 <div class="book-details-container">
+  <div class="language-selector">
+    <a th:href="@{/books/{name}(name=${book.name}, lang='en')}" th:text="#{lang.english}">English</a>
+    <a th:href="@{/books/{name}(name=${book.name}, lang='de')}" th:text="#{lang.german}">Deutsch</a>
+  </div>
+
   <h2 th:text="${book.name}">Book Name</h2>
-  <p><strong>Genre:</strong> <span th:text="${book.genre} ?: 'N/A'"></span></p>
-  <p><strong>Age Group:</strong> <span th:text="${book.ageGroup} ?: 'N/A'"></span></p>
-  <p><strong>Price:</strong> <span th:text="${#numbers.formatDecimal(book.price, 2, 2)} ?: 'N/A'"></span></p>
-  <p><strong>Publication Date:</strong> <span th:text="${#temporals.format(book.publicationDate, 'yyyy-MM-dd')} ?: 'N/A'"></span></p>
-  <p><strong>Author:</strong> <span th:text="${book.author} ?: 'N/A'"></span></p>
-  <p><strong>Pages:</strong> <span th:text="${book.pages} ?: 'N/A'"></span></p>
-  <p><strong>Characteristics:</strong> <span th:text="${book.characteristics} ?: 'N/A'"></span></p>
-  <p><strong>Description:</strong> <span th:text="${book.description} ?: 'N/A'"></span></p>
-  <p><strong>Language:</strong> <span th:text="${book.language} ?: 'N/A'"></span></p>
+  <p><strong th:text="#{book.genre.label}">Genre:</strong> <span th:text="${book.genre} ?: 'N/A'"></span></p>
+  <p><strong th:text="#{book.age.group.label}">Age Group:</strong> <span th:text="${book.ageGroup} ?: 'N/A'"></span></p>
+  <p><strong th:text="#{book.price.label}">Price:</strong> <span th:text="${#numbers.formatDecimal(book.price, 2, 2)} ?: 'N/A'"></span></p>
+  <p><strong th:text="#{book.publication.date.label}">Publication Date:</strong> <span th:text="${#temporals.format(book.publicationDate, 'yyyy-MM-dd')} ?: 'N/A'"></span></p>
+  <p><strong th:text="#{book.author.label}">Author:</strong> <span th:text="${book.author} ?: 'N/A'"></span></p>
+  <p><strong th:text="#{book.pages.label}">Pages:</strong> <span th:text="${book.pages} ?: 'N/A'"></span></p>
+  <p><strong th:text="#{book.characteristics.label}">Characteristics:</strong> <span th:text="${book.characteristics} ?: 'N/A'"></span></p>
+  <p><strong th:text="#{book.description.label}">Description:</strong> <span th:text="${book.description} ?: 'N/A'"></span></p>
+  <p><strong th:text="#{book.language.label}">Language:</strong> <span th:text="${book.language} ?: 'N/A'"></span></p>
 
   <div class="button-group">
-    <a th:href="@{/books}" class="btn btn-secondary">Return to Books</a>
+    <a th:href="@{/books}" class="btn btn-secondary" th:text="#{return.books}">Return to Books</a>
 
     <div sec:authorize="hasRole('EMPLOYEE')" class="button-group">
-      <a th:href="@{/books/edit/{name}(name=${book.name})}" class="btn btn-warning">Edit</a>
+      <a th:href="@{/books/edit/{name}(name=${book.name})}" class="btn btn-warning" th:text="#{edit}">Edit</a>
       <form th:action="@{/books/delete/{name}(name=${book.name})}" method="post" style="display:inline;">
-        <button type="submit" class="btn btn-danger">Delete</button>
+        <button type="submit" class="btn btn-danger" th:text="#{delete}">Delete</button>
       </form>
     </div>
   </div>

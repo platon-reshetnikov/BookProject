@@ -2,11 +2,11 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Basket</title>
+    <title th:text="#{basket.title}">Basket</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <style>
         body {
-            background-color: #f0f2f5; /* Лёгкий серо-голубой фон */
+            background-color: #f0f2f5;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #333333;
         }
@@ -16,16 +16,16 @@
             padding: 20px;
             border-radius: 15px;
             background-color: #ffffff;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Мягкая тень */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .basket-container:hover {
             transform: translateY(-5px);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); /* Усиленная тень при наведении */
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
         }
         .basket-container h1 {
             text-align: center;
-            color: #2c3e50; /* Тёмно-синий заголовок */
+            color: #2c3e50;
             margin-bottom: 25px;
             font-weight: 600;
         }
@@ -37,7 +37,7 @@
             overflow: hidden;
         }
         .table th {
-            background-color: #3498db; /* Синий заголовок таблицы */
+            background-color: #3498db;
             color: #ffffff;
             font-weight: 500;
         }
@@ -45,10 +45,10 @@
             vertical-align: middle;
         }
         .table-striped tbody tr:nth-of-type(odd) {
-            background-color: #f8f9fa; /* Альтернативный фон для чётных строк */
+            background-color: #f8f9fa;
         }
         .table-striped tbody tr:hover {
-            background-color: #e9ecef; /* Лёгкий фон при наведении */
+            background-color: #e9ecef;
             transition: background-color 0.2s ease;
         }
         .button-group {
@@ -62,13 +62,13 @@
             transition: background-color 0.3s ease;
         }
         .btn-success:hover {
-            background-color: #218838; /* Более тёмный зелёный при наведении */
+            background-color: #218838;
         }
         .btn-danger:hover {
-            background-color: #c9302c; /* Более тёмный красный при наведении */
+            background-color: #c9302c;
         }
         .btn-secondary:hover {
-            background-color: #5a6268; /* Более тёмный серый при наведении */
+            background-color: #5a6268;
         }
         .alert {
             border-radius: 5px;
@@ -79,11 +79,28 @@
             color: #7f8c8d;
             padding: 20px;
         }
+        .language-selector {
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .language-selector a {
+            margin: 0 0.5rem;
+            text-decoration: none;
+            color: #007bff;
+        }
+        .language-selector a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
 <div class="basket-container">
-    <h1>Your Basket</h1>
+    <div class="language-selector">
+        <a th:href="@{/clients/basket(lang='en')}" th:text="#{lang.english}">English</a>
+        <a th:href="@{/clients/basket(lang='de')}" th:text="#{lang.german}">Deutsch</a>
+    </div>
+
+    <h1 th:text="#{basket.title}">Your Basket</h1>
 
     <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
     <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
@@ -92,8 +109,8 @@
         <table class="table table-striped">
             <thead>
             <tr>
-                <th>Book Name</th>
-                <th>Quantity</th>
+                <th th:text="#{basket.book.name}">Book Name</th>
+                <th th:text="#{basket.quantity}">Quantity</th>
             </tr>
             </thead>
             <tbody>
@@ -102,7 +119,7 @@
                 <td th:text="${item.quantity}"></td>
             </tr>
             <tr th:unless="${basket != null && !basket.isEmpty()}">
-                <td colspan="2" class="empty-basket">Your basket is empty</td>
+                <td colspan="2" class="empty-basket" th:text="#{basket.empty}">Your basket is empty</td>
             </tr>
             </tbody>
         </table>
@@ -110,15 +127,15 @@
 
     <div class="button-group" th:if="${basket != null && !basket.isEmpty()}">
         <form th:action="@{/clients/basket/submit}" method="post" style="display:inline;">
-            <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to submit your order?');">Submit Order</button>
+            <button type="submit" class="btn btn-success" th:text="#{order.submit}" onclick="return confirm('Are you sure you want to submit your order?');">Submit Order</button>
         </form>
         <form th:action="@{/clients/basket/clear}" method="post" style="display:inline;">
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to clear your basket?');">Clear Basket</button>
+            <button type="submit" class="btn btn-danger" th:text="#{basket.clear}" onclick="return confirm('Are you sure you want to clear your basket?');">Clear Basket</button>
         </form>
-        <a th:href="@{/books}" class="btn btn-secondary">Back to Books</a>
+        <a th:href="@{/books}" class="btn btn-secondary" th:text="#{return.books}">Back to Books</a>
     </div>
     <div class="button-group" th:unless="${basket != null && !basket.isEmpty()}">
-        <a th:href="@{/books}" class="btn btn-secondary">Back to Books</a>
+        <a th:href="@{/books}" class="btn btn-secondary" th:text="#{return.books}">Back to Books</a>
     </div>
 </div>
 </body>

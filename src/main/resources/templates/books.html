@@ -2,11 +2,11 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
-  <title>Books</title>
+  <title th:text="#{books.title}">Books</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
   <style>
     body {
-      background-color: #f0f2f5; /* Лёгкий серо-голубой фон */
+      background-color: #f0f2f5;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #333333;
     }
@@ -16,16 +16,16 @@
       padding: 20px;
       border-radius: 15px;
       background-color: #ffffff;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Мягкая тень */
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .books-container:hover {
       transform: translateY(-5px);
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); /* Усиленная тень при наведении */
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
     }
     .books-container h1 {
       text-align: center;
-      color: #2c3e50; /* Тёмно-синий заголовок */
+      color: #2c3e50;
       margin-bottom: 25px;
       font-weight: 600;
     }
@@ -46,13 +46,13 @@
       background-color: #28a745;
     }
     .btn-success:hover {
-      background-color: #218838; /* Более тёмный зелёный при наведении */
+      background-color: #218838;
     }
     .btn-primary {
       background-color: #007bff;
     }
     .btn-primary:hover {
-      background-color: #0056b3; /* Более тёмный синий при наведении */
+      background-color: #0056b3;
     }
     .table-responsive {
       margin-top: 20px;
@@ -62,7 +62,7 @@
       overflow: hidden;
     }
     .table th {
-      background-color: #3498db; /* Синий заголовок таблицы */
+      background-color: #3498db;
       color: #ffffff;
       font-weight: 500;
     }
@@ -70,10 +70,10 @@
       vertical-align: middle;
     }
     .table-striped tbody tr:nth-of-type(odd) {
-      background-color: #f8f9fa; /* Альтернативный фон для чётных строк */
+      background-color: #f8f9fa;
     }
     .table-striped tbody tr:hover {
-      background-color: #e9ecef; /* Лёгкий фон при наведении */
+      background-color: #e9ecef;
       transition: background-color 0.2s ease;
     }
     .table a {
@@ -107,21 +107,38 @@
     .logout-link:hover {
       color: #c0392b;
     }
+    .language-selector {
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .language-selector a {
+      margin: 0 0.5rem;
+      text-decoration: none;
+      color: #007bff;
+    }
+    .language-selector a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
 <div class="books-container">
-  <h1>Book List</h1>
+  <div class="language-selector">
+    <a th:href="@{/books(lang='en')}" th:text="#{lang.english}">English</a>
+    <a th:href="@{/books(lang='de')}" th:text="#{lang.german}">Deutsch</a>
+  </div>
+
+  <h1 th:text="#{books.title}">Book List</h1>
 
   <div class="button-group" sec:authorize="hasRole('EMPLOYEE')">
-    <a th:href="@{/books/add}" class="btn btn-success">Add Book</a>
-    <a th:href="@{/orders}" class="btn btn-primary">View Orders</a>
-    <a th:href="@{/clients/manage}" class="btn btn-primary">Manage Clients</a>
-    <a th:href="@{/clients/list}" class="btn btn-primary">View Client List</a>
+    <a th:href="@{/books/add}" class="btn btn-success" th:text="#{book.add}">Add Book</a>
+    <a th:href="@{/orders}" class="btn btn-primary" th:text="#{orders.view}">View Orders</a>
+    <a th:href="@{/clients/manage}" class="btn btn-primary" th:text="#{clients.manage}">Manage Clients</a>
+    <a th:href="@{/clients/list}" class="btn btn-primary" th:text="#{clients.list}">View Client List</a>
   </div>
 
   <div class="button-group" sec:authorize="hasRole('CLIENT')">
-    <a th:href="@{/clients/basket}" class="btn btn-primary">View Basket</a>
+    <a th:href="@{/clients/basket}" class="btn btn-primary" th:text="#{basket.view}">View Basket</a>
   </div>
 
   <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
@@ -131,9 +148,9 @@
     <table class="table table-striped">
       <thead>
       <tr>
-        <th>Name</th>
-        <th>Author</th>
-        <th sec:authorize="hasRole('CLIENT')">Actions</th>
+        <th th:text="#{table.name}">Name</th>
+        <th th:text="#{table.author}">Author</th>
+        <th sec:authorize="hasRole('CLIENT')" th:text="#{table.actions}">Actions</th>
       </tr>
       </thead>
       <tbody>
@@ -145,7 +162,7 @@
         <td sec:authorize="hasRole('CLIENT')">
           <form th:action="@{/clients/basket/add/{bookName}(bookName=${book.name})}" method="post" style="display:inline;">
             <input type="hidden" name="quantity" value="1"/>
-            <button type="submit" class="btn btn-success btn-sm">Add to Basket</button>
+            <button type="submit" class="btn btn-success btn-sm" th:text="#{basket.add}">Add to Basket</button>
           </form>
         </td>
       </tr>
@@ -154,8 +171,8 @@
   </div>
 
   <div class="nav-links">
-    <a th:href="@{/logout}" class="logout-link">Logout</a>
-    <a th:href="@{/profile}">View Profile</a>
+    <a th:href="@{/logout}" class="logout-link" th:text="#{logout}">Logout</a>
+    <a th:href="@{/profile}" th:text="#{profile.view}">View Profile</a>
   </div>
 </div>
 </body>

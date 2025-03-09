@@ -2,11 +2,11 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title th:text="${book.name} ? 'Edit Book' : 'Add Book'">Book Form</title>
+    <title th:text="${book.name} ? #{edit.book.title} : #{add.book.title}">Book Form</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <style>
         body {
-            background-color: #f0f2f5; /* Лёгкий серо-голубой фон */
+            background-color: #f0f2f5;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #333333;
         }
@@ -16,16 +16,16 @@
             padding: 30px;
             border-radius: 15px;
             background-color: #ffffff;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Мягкая тень */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .book-form-container:hover {
             transform: translateY(-5px);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); /* Усиленная тень при наведении */
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
         }
         .book-form-container h1 {
             text-align: center;
-            color: #2c3e50; /* Тёмно-синий заголовок */
+            color: #2c3e50;
             margin-bottom: 25px;
             font-weight: 600;
         }
@@ -42,7 +42,7 @@
             padding: 10px;
         }
         .form-control:focus, .form-select:focus {
-            border-color: #3498db; /* Синяя обводка при фокусе */
+            border-color: #3498db;
             box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
             outline: none;
         }
@@ -67,7 +67,7 @@
             transition: background-color 0.3s ease;
         }
         .btn-primary:hover {
-            background-color: #2980b9; /* Более тёмный синий при наведении */
+            background-color: #2980b9;
         }
         .btn-secondary {
             background-color: #7f8c8d;
@@ -77,28 +77,45 @@
             transition: background-color 0.3s ease;
         }
         .btn-secondary:hover {
-            background-color: #6c757d; /* Более тёмный серый при наведении */
+            background-color: #6c757d;
+        }
+        .language-selector {
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .language-selector a {
+            margin: 0 0.5rem;
+            text-decoration: none;
+            color: #007bff;
+        }
+        .language-selector a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
 <div class="book-form-container">
-    <h1 th:text="${book.name} ? 'Edit Book' : 'Add Book'"></h1>
+    <div class="language-selector">
+        <a th:href="@{${book.name} ? '/books/edit/{name}(name=' + ${book.name} + ', lang=en)' : '/books/add(lang=en)'}" th:text="#{lang.english}">English</a>
+        <a th:href="@{${book.name} ? '/books/edit/{name}(name=' + ${book.name} + ', lang=de)' : '/books/add(lang=de)'}" th:text="#{lang.german}">Deutsch</a>
+    </div>
+
+    <h1 th:text="${book.name} ? #{edit.book.title} : #{add.book.title}"></h1>
 
     <form th:action="${book.name} ? @{/books/update} : @{/books/add}" th:object="${book}" method="post" class="needs-validation" novalidate>
         <input type="hidden" th:field="*{name}" th:if="${book.name}" />
         <div class="form-group">
-            <label for="name" class="form-label">Name</label>
+            <label for="name" th:text="#{book.name.label}">Name</label>
             <input type="text" class="form-control" id="name" th:field="*{name}" th:disabled="${book.name}" required />
             <div class="text-danger" th:errors="*{name}"></div>
         </div>
         <div class="form-group">
-            <label for="genre" class="form-label">Genre</label>
+            <label for="genre" th:text="#{book.genre.label}">Genre</label>
             <input type="text" class="form-control" id="genre" th:field="*{genre}" required />
             <div class="text-danger" th:errors="*{genre}"></div>
         </div>
         <div class="form-group">
-            <label for="ageGroup" class="form-label">Age Group</label>
+            <label for="ageGroup" th:text="#{book.age.group.label}">Age Group</label>
             <select class="form-select" id="ageGroup" th:field="*{ageGroup}" required>
                 <option th:each="age : ${T(com.epam.rd.autocode.spring.project.model.enums.AgeGroup).values()}"
                         th:value="${age}" th:text="${age}"></option>
@@ -106,37 +123,37 @@
             <div class="text-danger" th:errors="*{ageGroup}"></div>
         </div>
         <div class="form-group">
-            <label for="price" class="form-label">Price</label>
+            <label for="price" th:text="#{book.price.label}">Price</label>
             <input type="number" step="0.01" class="form-control" id="price" th:field="*{price}" required />
             <div class="text-danger" th:errors="*{price}"></div>
         </div>
         <div class="form-group">
-            <label for="publicationDate" class="form-label">Publication Date</label>
+            <label for="publicationDate" th:text="#{book.publication.date.label}">Publication Date</label>
             <input type="date" class="form-control" id="publicationDate" th:field="*{publicationDate}" required />
             <div class="text-danger" th:errors="*{publicationDate}"></div>
         </div>
         <div class="form-group">
-            <label for="author" class="form-label">Author</label>
+            <label for="author" th:text="#{book.author.label}">Author</label>
             <input type="text" class="form-control" id="author" th:field="*{author}" required />
             <div class="text-danger" th:errors="*{author}"></div>
         </div>
         <div class="form-group">
-            <label for="pages" class="form-label">Pages</label>
+            <label for="pages" th:text="#{book.pages.label}">Pages</label>
             <input type="number" class="form-control" id="pages" th:field="*{pages}" required />
             <div class="text-danger" th:errors="*{pages}"></div>
         </div>
         <div class="form-group">
-            <label for="characteristics" class="form-label">Characteristics</label>
+            <label for="characteristics" th:text="#{book.characteristics.label}">Characteristics</label>
             <input type="text" class="form-control" id="characteristics" th:field="*{characteristics}" required />
             <div class="text-danger" th:errors="*{characteristics}"></div>
         </div>
         <div class="form-group">
-            <label for="description" class="form-label">Description</label>
+            <label for="description" th:text="#{book.description.label}">Description</label>
             <textarea class="form-control" id="description" th:field="*{description}" required></textarea>
             <div class="text-danger" th:errors="*{description}"></div>
         </div>
         <div class="form-group">
-            <label for="language" class="form-label">Language</label>
+            <label for="language" th:text="#{book.language.label}">Language</label>
             <select class="form-select" id="language" th:field="*{language}" required>
                 <option th:each="lang : ${T(com.epam.rd.autocode.spring.project.model.enums.Language).values()}"
                         th:value="${lang}" th:text="${lang}"></option>
@@ -145,8 +162,8 @@
         </div>
 
         <div class="button-group">
-            <button type="submit" class="btn btn-primary">Save</button>
-            <a th:href="@{/books}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary" th:text="#{save}">Save</button>
+            <a th:href="@{/books}" class="btn btn-secondary" th:text="#{cancel}">Cancel</a>
         </div>
     </form>
 </div>
