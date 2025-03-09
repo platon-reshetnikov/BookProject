@@ -99,6 +99,16 @@
     .language-selector a:hover {
       text-decoration: underline;
     }
+    .success-message {
+      margin-top: 10px;
+      text-align: center;
+    }
+    .success-prompt {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #555;
+    }
   </style>
 </head>
 <body>
@@ -111,9 +121,13 @@
   <h2 th:text="#{register.title}">Register</h2>
 
   <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+  <div th:if="${successMessage}" class="success-prompt" th:text="#{register.success.prompt}"></div>
+  <div th:if="${successMessage}" class="success-message">
+    <a th:href="@{/login}" th:text="#{login}" class="btn btn-primary">Login</a>
+  </div>
   <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-  <form th:action="@{/register}" th:object="${userWrapper}" method="post" class="needs-validation" novalidate>
+  <form th:action="@{/register}" th:object="${userWrapper}" method="post" class="needs-validation" novalidate th:unless="${successMessage}">
     <div class="form-group">
       <label for="userType" th:text="#{user.type}" class="form-label"></label>
       <select class="form-select" id="userType" name="userType" required>

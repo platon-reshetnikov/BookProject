@@ -1,7 +1,5 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
-import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
-import com.epam.rd.autocode.spring.project.mapper.BookItemMapper;
 import com.epam.rd.autocode.spring.project.mapper.OrderMapper;
 import com.epam.rd.autocode.spring.project.dto.OrderDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
@@ -14,7 +12,6 @@ import com.epam.rd.autocode.spring.project.service.BookPriceService;
 import com.epam.rd.autocode.spring.project.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -22,7 +19,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +34,7 @@ public class OrderServiceImpl implements OrderService {
     private final ClientRepository clientRepository;
     private final EmployeeRepository employeeRepository;
     private final BookPriceService bookPriceService;
-    //private final BookItemMapper bookItemMapper;
     private final BookRepository bookRepository;
-    //private BookItemDTO bookItemDTO;
 
     @Override
     public List<OrderDTO> getOrdersByClient(String clientEmail) {
@@ -104,15 +98,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderDTO> getOrdersByOrderDate(LocalDateTime orderDate) {
-        List<Order> orders = orderRepository.findByOrderDate(orderDate);
-        return orders.stream()
-                .map(orderMapper::toDTO)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     public List<OrderDTO> getAllOrders() {
         List<Order> orders = orderRepository.findAll();
         return orders.stream()
@@ -138,13 +123,6 @@ public class OrderServiceImpl implements OrderService {
         order.setEmployee(employee);
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toDTO(savedOrder);
-    }
-
-    @Override
-    public OrderDTO findOrderByClientEmailAndOrderDate(String clientEmail, LocalDateTime orderDate) {
-        Optional<Order> orderOptional = orderRepository.findByClientEmailAndOrderDate(clientEmail, orderDate);
-        Order order = orderOptional.orElseThrow(() -> new NotFoundException("Order not found for client " + clientEmail + " and date " + orderDate));
-        return orderMapper.toDTO(order);
     }
 
     @Override

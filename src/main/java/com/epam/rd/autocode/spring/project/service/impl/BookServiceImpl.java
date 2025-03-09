@@ -1,9 +1,9 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
+import com.epam.rd.autocode.spring.project.exception.DuplicateResourceException;
 import com.epam.rd.autocode.spring.project.mapper.BookMapper;
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
-import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.repo.BookRepository;
 import com.epam.rd.autocode.spring.project.service.BookService;
@@ -55,7 +55,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public BookDTO addBook(@Valid BookDTO bookDTO) {
         if (bookRepository.findByName(bookDTO.getName()).isPresent()) {
-            throw new AlreadyExistException("Book already exists with name: " + bookDTO.getName());
+            throw new DuplicateResourceException("Book with name " + bookDTO.getName() + " already exists");
         }
         Book book = bookMapper.toEntity(bookDTO);
         Book savedBook = bookRepository.save(book);

@@ -3,7 +3,6 @@ package com.epam.rd.autocode.spring.project.service.impl;
 import com.epam.rd.autocode.spring.project.mapper.ClientMapper;
 import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
-import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
@@ -13,8 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import jakarta.validation.Valid;
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,37 +43,10 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ClientDTO updateClientByEmail(String email, @Valid ClientDTO clientDTO) {
-        Client existingClient = clientRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("Client not found with email: " + email));
-        clientMapper.updateEntityFromDTO(clientDTO, existingClient);
-        Client updatedClient = clientRepository.save(existingClient);
-        return clientMapper.toDTO(updatedClient);
-    }
-
-    @Override
     public void deleteClientByEmail(String email) {
         Client client = clientRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("Client not found with email: " + email));
         clientRepository.delete(client);
-    }
-
-    @Override
-    public ClientDTO addClient(@Valid ClientDTO clientDTO) {
-        if (clientRepository.findByEmail(clientDTO.getEmail()).isPresent()) {
-            throw new AlreadyExistException("Client already exists with email: " + clientDTO.getEmail());
-        }
-        Client client = clientMapper.toEntity(clientDTO);
-        Client savedClient = clientRepository.save(client);
-        return clientMapper.toDTO(savedClient);
-    }
-
-    @Override
-    public List<ClientDTO> getClientsWithBalanceGreaterThan(BigDecimal balance) {
-        List<Client> clients = clientRepository.findByBalanceGreaterThan(balance);
-        return clients.stream()
-                .map(clientMapper::toDTO)
-                .collect(Collectors.toList());
     }
 
     @Override

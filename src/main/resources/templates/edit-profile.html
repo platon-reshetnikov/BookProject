@@ -110,12 +110,6 @@
 
   <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-  <!-- Debugging -->
-  <div class="debug-info">
-    <p><span th:text="#{profile.user.type} + ':'">User Type:</span> <span th:text="${userType}"></span></p>
-    <p><span th:text="#{profile.client.balance.debug} + ':'">Debug - Client Balance:</span> <span th:text="${userWrapper.clientDTO?.balance}"></span></p>
-  </div>
-
   <form th:action="@{/profile/edit}" th:object="${userWrapper}" method="post" class="needs-validation" novalidate>
     <input type="hidden" name="userType" th:value="${userType}" />
 

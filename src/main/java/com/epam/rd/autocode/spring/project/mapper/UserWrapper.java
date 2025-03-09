@@ -16,7 +16,6 @@ public class UserWrapper {
         this.employeeDTO = new EmployeeDTO();
     }
 
-    // Опционально: конструктор с параметрами для тестирования или ручной инициализации
     public UserWrapper(ClientDTO clientDTO, EmployeeDTO employeeDTO) {
         this.clientDTO = clientDTO != null ? clientDTO : new ClientDTO();
         this.employeeDTO = employeeDTO != null ? employeeDTO : new EmployeeDTO();

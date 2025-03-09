@@ -4,10 +4,12 @@ import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientRegistrationDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeRegistrationDTO;
+import com.epam.rd.autocode.spring.project.exception.DuplicateResourceException;
 import com.epam.rd.autocode.spring.project.mapper.UserWrapper;
 import com.epam.rd.autocode.spring.project.service.impl.UserServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -23,6 +25,8 @@ import java.util.Locale;
 public class AuthController {
 
     private final UserServiceImpl userService;
+    @Autowired
+    private MessageSource messageSource;
 
     @Autowired
     public AuthController(UserServiceImpl userService) {
@@ -33,7 +37,7 @@ public class AuthController {
     public String showRegistrationForm(
             @RequestParam(name = "lang", required = false) String lang,
             Model model) {
-        System.out.println("Showing registration form");
+        System.out.println("Показываем форму регистрации");
         if (lang != null && !lang.isBlank()) {
             System.out.println("Переключение локали на: " + lang + " (из /register)");
         } else {
@@ -44,7 +48,7 @@ public class AuthController {
             model.addAttribute("userWrapper", userWrapper);
         }
         model.addAttribute("submitted", false);
-        System.out.println("UserWrapper in model: " + model.getAttribute("userWrapper"));
+        System.out.println("UserWrapper в модели: " + model.getAttribute("userWrapper"));
         return "register";
     }
 
@@ -55,7 +59,7 @@ public class AuthController {
             BindingResult bindingResult,
             @RequestParam(name = "lang", required = false) String lang,
             Model model) {
-        System.out.println("Processing registration for user type: " + userType);
+        System.out.println("Обрабатываем регистрацию для типа пользователя: " + userType);
         if (lang != null && !lang.isBlank()) {
             System.out.println("Переключение локали на: " + lang + " (из POST /register)");
         } else {
@@ -63,40 +67,53 @@ public class AuthController {
         }
 
         if (bindingResult.hasErrors()) {
-            System.out.println("Validation errors: " + bindingResult.getAllErrors());
-            model.addAttribute("error", "Please fix the validation errors.");
+            System.out.println("Ошибки валидации: " + bindingResult.getAllErrors());
+            model.addAttribute("error", messageSource.getMessage("validation.required", null, Locale.getDefault()));
             return "register";
+        }
+
+        Locale locale = Locale.getDefault();
+        if (lang != null && !lang.isBlank()) {
+            locale = new Locale(lang);
         }
 
         if ("client".equals(userType)) {
             ClientDTO clientDTO = userWrapper.getClientDTO();
-            System.out.println("ClientDTO received: " + clientDTO);
+            System.out.println("Получен ClientDTO: " + clientDTO);
             try {
                 userService.addClient(clientDTO);
-                System.out.println("Client registration successful");
-                model.addAttribute("successMessage", "Client registered successfully!");
+                System.out.println("Регистрация клиента прошла успешно");
+                model.addAttribute("successMessage", messageSource.getMessage("register.client.success", null, locale));
+                return "register";
+            } catch (DuplicateResourceException e) {
+                System.out.println("Регистрация клиента провалилась из-за дубликата: " + e.getMessage());
+                model.addAttribute("error", messageSource.getMessage("register.duplicate.error", new Object[]{clientDTO.getEmail()}, locale));
+                return "register";
             } catch (RuntimeException e) {
-                System.out.println("Client registration failed: " + e.getMessage());
-                model.addAttribute("error", e.getMessage());
+                System.out.println("Регистрация клиента провалилась: " + e.getMessage());
+                model.addAttribute("error", messageSource.getMessage("register.error", new Object[]{e.getMessage()}, locale));
                 return "register";
             }
         } else if ("employee".equals(userType)) {
             EmployeeDTO employeeDTO = userWrapper.getEmployeeDTO();
-            System.out.println("EmployeeDTO received: " + employeeDTO);
+            System.out.println("Получен EmployeeDTO: " + employeeDTO);
             try {
                 userService.addEmployee(employeeDTO);
-                System.out.println("Employee registration successful");
-                model.addAttribute("successMessage", "Employee registered successfully!");
+                System.out.println("Регистрация сотрудника прошла успешно");
+                model.addAttribute("successMessage", messageSource.getMessage("register.employee.success", null, locale));
+                return "register";
+            } catch (DuplicateResourceException e) {
+                System.out.println("Регистрация сотрудника провалилась из-за дубликата: " + e.getMessage());
+                model.addAttribute("error", messageSource.getMessage("register.duplicate.error", new Object[]{employeeDTO.getEmail()}, locale));
+                return "register";
             } catch (RuntimeException e) {
-                System.out.println("Employee registration failed: " + e.getMessage());
-                model.addAttribute("error", e.getMessage());
+                System.out.println("Регистрация сотрудника провалилась: " + e.getMessage());
+                model.addAttribute("error", messageSource.getMessage("register.error", new Object[]{e.getMessage()}, locale));
                 return "register";
             }
         } else {
-            model.addAttribute("error", "Invalid user type selected.");
+            model.addAttribute("error", messageSource.getMessage("register.invalid.type", null, locale));
             return "register";
         }
-
-        return "redirect:/login";
     }
 }
