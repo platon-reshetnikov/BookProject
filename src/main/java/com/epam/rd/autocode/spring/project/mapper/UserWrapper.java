@@ -2,6 +2,7 @@ package com.epam.rd.autocode.spring.project.mapper;
 
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -16,11 +16,16 @@ public class EmployeeDTO {
     @Email(message = "Email must be a valid email address", groups = EmployeeValidationGroup.class)
     private String email;
 
-    @NotBlank(message = "Password cannot be blank", groups = EmployeeValidationGroup.class)
-    @Size(min = 6, message = "Password must be at least 6 characters long", groups = EmployeeValidationGroup.class)
+    @NotBlank(message = "{validation.password}", groups = EmployeeValidationGroup.class)
+    @Size(min = 6, message = "{employeeDTO.password.Size}", groups = EmployeeValidationGroup.class)
+    @Pattern(
+            regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=\\S+$).{6,}$",
+            message = "{employeeDTO.password.Pattern}",
+            groups = EmployeeValidationGroup.class
+    )
     private String password;
 
-    @NotBlank(message = "Name cannot be blank", groups = EmployeeValidationGroup.class)
+    @NotBlank(message = "Name cannot be blank")
     private String name;
 
     @NotBlank(message = "Phone number cannot be blank", groups = EmployeeValidationGroup.class)

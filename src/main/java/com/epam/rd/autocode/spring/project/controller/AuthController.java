@@ -1,13 +1,12 @@
 package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
-import com.epam.rd.autocode.spring.project.dto.ClientRegistrationDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
-import com.epam.rd.autocode.spring.project.dto.EmployeeRegistrationDTO;
 import com.epam.rd.autocode.spring.project.exception.DuplicateResourceException;
 import com.epam.rd.autocode.spring.project.mapper.UserWrapper;
 import com.epam.rd.autocode.spring.project.service.impl.UserServiceImpl;
-import jakarta.validation.Valid;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
@@ -18,6 +17,7 @@ import validation.ClientValidationGroup;
 import validation.EmployeeValidationGroup;
 
 import java.util.Locale;
+import java.util.Set;
 
 
 @Controller
@@ -28,34 +28,29 @@ public class AuthController {
     @Autowired
     private MessageSource messageSource;
 
+    private final Validator validator;
+
     @Autowired
-    public AuthController(UserServiceImpl userService) {
+    public AuthController(UserServiceImpl userService,Validator validator) {
         this.userService = userService;
+        this.validator = validator;
     }
 
     @GetMapping
     public String showRegistrationForm(
             @RequestParam(name = "lang", required = false) String lang,
             Model model) {
-        System.out.println("Показываем форму регистрации");
-        if (lang != null && !lang.isBlank()) {
-            System.out.println("Переключение локали на: " + lang + " (из /register)");
-        } else {
-            System.out.println("Использована локаль по умолчанию на /register: " + Locale.getDefault());
-        }
         if (!model.containsAttribute("userWrapper")) {
-            UserWrapper userWrapper = new UserWrapper();
-            model.addAttribute("userWrapper", userWrapper);
+            model.addAttribute("userWrapper", new UserWrapper());
         }
         model.addAttribute("submitted", false);
-        System.out.println("UserWrapper в модели: " + model.getAttribute("userWrapper"));
         return "register";
     }
 
     @PostMapping
     public String registerUser(
             @RequestParam("userType") String userType,
-            @Valid @ModelAttribute("userWrapper") UserWrapper userWrapper,
+            @ModelAttribute("userWrapper") UserWrapper userWrapper,
             BindingResult bindingResult,
             @RequestParam(name = "lang", required = false) String lang,
             Model model) {
@@ -66,9 +61,28 @@ public class AuthController {
             System.out.println("Использована локаль по умолчанию на POST /register: " + Locale.getDefault());
         }
 
+        // Устанавливаем флаг submitted
+        model.addAttribute("submitted", true);
+
+        // Валидация в зависимости от userType
+        if ("client".equals(userType)) {
+            // Валидируем только clientDTO
+            Set<ConstraintViolation<ClientDTO>> violations = validator.validate(userWrapper.getClientDTO(), ClientValidationGroup.class);
+            for (ConstraintViolation<ClientDTO> violation : violations) {
+                bindingResult.rejectValue("clientDTO." + violation.getPropertyPath(), violation.getMessageTemplate(), violation.getMessage());
+            }
+        } else if ("employee".equals(userType)) {
+            // Валидируем только employeeDTO
+            Set<ConstraintViolation<EmployeeDTO>> violations = validator.validate(userWrapper.getEmployeeDTO(), EmployeeValidationGroup.class);
+            for (ConstraintViolation<EmployeeDTO> violation : violations) {
+                bindingResult.rejectValue("employeeDTO." + violation.getPropertyPath(), violation.getMessageTemplate(), violation.getMessage());
+            }
+        } else {
+            bindingResult.rejectValue("userType", "validation.user.type", "Please select a user type");
+        }
+
         if (bindingResult.hasErrors()) {
             System.out.println("Ошибки валидации: " + bindingResult.getAllErrors());
-            model.addAttribute("error", messageSource.getMessage("validation.required", null, Locale.getDefault()));
             return "register";
         }
 

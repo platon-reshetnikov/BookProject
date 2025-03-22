@@ -14,8 +14,13 @@ public class ClientDTO {
     @Email(message = "Email must be a valid email address", groups = ClientValidationGroup.class)
     private String email;
 
-    @NotBlank(message = "Password cannot be blank", groups = ClientValidationGroup.class)
-    @Size(min = 6, message = "Password must be at least 6 characters long", groups = ClientValidationGroup.class)
+    @NotBlank(message = "{validation.password}", groups = ClientValidationGroup.class)
+    @Size(min = 6, message = "{clientDTO.password.Size}", groups = ClientValidationGroup.class)
+    @Pattern(
+            regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=\\S+$).{6,}$",
+            message = "{clientDTO.password.Pattern}",
+            groups = ClientValidationGroup.class
+    )
     private String password;
 
     @NotBlank(message = "Name cannot be blank", groups = ClientValidationGroup.class)
