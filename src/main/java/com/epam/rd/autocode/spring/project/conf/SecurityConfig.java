@@ -48,6 +48,9 @@ public class SecurityConfig {
                 )
                 .logout(LogoutConfigurer::permitAll
                 )
+                .requiresChannel(channel -> channel
+                        .anyRequest().requiresSecure() // Force HTTPS for all requests
+                )
                 .userDetailsService(userDetailsService);
 
         return http.build();
