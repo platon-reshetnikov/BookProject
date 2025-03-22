@@ -1,5 +1,5 @@
 INSERT INTO EMPLOYEES (BIRTH_DATE, EMAIL, NAME, PASSWORD, PHONE)
-VALUES ('1990-05-15', 'john.doe@email.com', 'John Doe', 'pass123', '555-123-4567'),
+VALUES ('1990-05-15', 'john.doe@email.com', 'John Doe', '$2y$10$zkXBkOlVgUO8mUEM/oZXqO0CjcEyajTx13YxpB5FTFzZ3JCv/.Hm.', '555-123-4567'),
        ('1985-09-20', 'jane.smith@email.com', 'Jane Smith', 'abc456', '555-987-6543'),
        ('1978-03-08', 'bob.jones@email.com', 'Bob Jones', 'qwerty789', '555-321-6789'),
        ('1982-11-25', 'alice.white@email.com', 'Alice White', 'secret567', '555-876-5432'),
@@ -11,7 +11,7 @@ VALUES ('1990-05-15', 'john.doe@email.com', 'John Doe', 'pass123', '555-123-4567
        ('1980-04-10', 'emily.harris@email.com', 'Emily Harris', '1234abcd', '555-098-7654');
 
 INSERT INTO CLIENTS (BALANCE, EMAIL, NAME, PASSWORD)
-VALUES (1000.00, 'client1@example.com', 'Medelyn Wright', 'password123'),
+VALUES (1000.00, 'client1@example.com', 'Medelyn Wright', '$2y$10$Vkz6Y9Bz4gp/yeNCgVf4ZuWEkL8yArVro.s9Qh7cnUpTu/67aElQa'),
        (1500.50, 'client2@example.com', 'Landon Phillips', 'securepass'),
        (800.75, 'client3@example.com', 'Harmony Mason', 'abc123'),
        (1200.25, 'client4@example.com', 'Archer Harper', 'pass456'),

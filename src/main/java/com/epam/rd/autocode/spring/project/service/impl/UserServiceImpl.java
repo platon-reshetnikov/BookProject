@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -33,10 +34,13 @@ public class UserServiceImpl implements UserDetailsService {
     @Autowired
     private ClientService clientService;
 
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(ClientRepository clientRepository, EmployeeRepository employeeRepository) {
+
+    public UserServiceImpl(ClientRepository clientRepository, EmployeeRepository employeeRepository,PasswordEncoder passwordEncoder) {
         this.clientRepository = clientRepository;
         this.employeeRepository = employeeRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public Client getClientByEmail(String email) {
@@ -53,6 +57,12 @@ public class UserServiceImpl implements UserDetailsService {
 
         Client client = clientRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Client not found"));
+
+        if (clientDTO.getPassword() != null && !clientDTO.getPassword().isEmpty()) {
+            String hashedPassword = passwordEncoder.encode(clientDTO.getPassword());
+            client.setPassword(hashedPassword);
+        }
+
         client.setName(clientDTO.getName());
         client.setEmail(clientDTO.getEmail());
         client.setPassword(clientDTO.getPassword());
@@ -68,6 +78,12 @@ public class UserServiceImpl implements UserDetailsService {
 
         Employee employee = employeeRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        if (employeeDTO.getPassword() != null && !employeeDTO.getPassword().isEmpty()) {
+            String hashedPassword = passwordEncoder.encode(employeeDTO.getPassword());
+            employee.setPassword(hashedPassword);
+        }
+
         employee.setName(employeeDTO.getName());
         employee.setEmail(employeeDTO.getEmail());
         employee.setPassword(employeeDTO.getPassword());
@@ -113,10 +129,12 @@ public class UserServiceImpl implements UserDetailsService {
             throw new RuntimeException("Client with email " + clientDTO.getEmail() + " already exists");
         }
 
+        String hashedPassword = passwordEncoder.encode(clientDTO.getPassword());
+
         // Создаём нового клиента
         Client client = new Client();
         client.setEmail(clientDTO.getEmail());
-        client.setPassword(clientDTO.getPassword());
+        client.setPassword(hashedPassword);
         client.setName(clientDTO.getName());
         client.setBalance(clientDTO.getBalance());
 
@@ -135,10 +153,12 @@ public class UserServiceImpl implements UserDetailsService {
             throw new RuntimeException("Employee with email " + employeeDTO.getEmail() + " already exists");
         }
 
+        String hashedPassword = passwordEncoder.encode(employeeDTO.getPassword());
+
         // Создаём нового сотрудника
         Employee employee = new Employee();
         employee.setEmail(employeeDTO.getEmail());
-        employee.setPassword(employeeDTO.getPassword());
+        employee.setPassword(hashedPassword);
         employee.setName(employeeDTO.getName());
         employee.setPhone(employeeDTO.getPhone());
         employee.setBirthDate(employeeDTO.getBirthDate());
