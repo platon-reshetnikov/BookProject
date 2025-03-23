@@ -26,7 +26,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/register", "/login").permitAll()
+                        .requestMatchers("/register", "/login", "/oauth2/**").permitAll()
                         .requestMatchers("/books", "/books/{name}").authenticated()
                         .requestMatchers("/profile", "/profile/edit").authenticated()
                         .requestMatchers("/basket/**").hasRole("CLIENT")
@@ -47,7 +47,14 @@ public class SecurityConfig {
                         .defaultSuccessUrl("/books", true)
                         .permitAll()
                 )
-                .logout(LogoutConfigurer::permitAll
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login") // Redirect to the custom login page
+                        .defaultSuccessUrl("/books", true) // Redirect after successful OAuth2 login
+                        .failureUrl("/login?error=true") // Redirect on OAuth2 login failure
+                )
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/login")
+                        .permitAll()
                 )
                 .requiresChannel(channel -> channel
                         .anyRequest().requiresSecure() // Force HTTPS for all requests

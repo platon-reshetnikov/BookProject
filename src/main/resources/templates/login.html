@@ -84,6 +84,22 @@
         .language-selector a:hover {
             text-decoration: underline;
         }
+        .oauth-login {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+        .oauth-login a {
+            display: inline-block;
+            background-color: #dd4b39; /* Google's red color */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .oauth-login a:hover {
+            background-color: #c23321; /* Darker shade for hover */
+        }
     </style>
 </head>
 <body>
@@ -114,6 +130,12 @@
             <a th:href="@{/register}" class="btn btn-secondary" th:text="#{register}"></a>
         </div>
     </form>
+
+    <!-- OAuth2 Login Section -->
+    <div class="oauth-login">
+        <p th:text="#{or.login.with}">Or log in with:</p>
+        <a th:href="@{/oauth2/authorization/google}" th:text="#{login.google}">Login with Google</a>
+    </div>
 </div>
 </body>
 </html>

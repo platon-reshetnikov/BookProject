@@ -130,4 +130,11 @@ public class AuthController {
             return "register";
         }
     }
+
+    @GetMapping("/oauth2/success")
+    public String oauth2Success(Model model) {
+        // Handle successful OAuth2 login
+        model.addAttribute("successMessage", "You have successfully logged in with Google!");
+        return "home";
+    }
 }
