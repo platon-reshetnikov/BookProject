@@ -135,6 +135,6 @@ public class AuthController {
     public String oauth2Success(Model model) {
         // Handle successful OAuth2 login
         model.addAttribute("successMessage", "You have successfully logged in with Google!");
-        return "home";
+        return "books";
     }
 }

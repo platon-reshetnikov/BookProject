@@ -135,7 +135,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderDTO calculateOrderPrice(OrderDTO orderDTO) {
-        if (orderDTO == null || orderDTO.getBookItems() == null || orderDTO.getBookItems().isEmpty()) {
+        if (orderDTO == null) {
+            OrderDTO newOrderDTO = new OrderDTO();
+            newOrderDTO.setPrice(BigDecimal.ZERO);
+            return newOrderDTO;
+        }
+        if (orderDTO.getBookItems() == null || orderDTO.getBookItems().isEmpty()) {
             orderDTO.setPrice(BigDecimal.ZERO);
             return orderDTO;
         }

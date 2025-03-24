@@ -25,22 +25,20 @@ public class UserServiceImpl implements UserDetailsService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    @Autowired
-    private ClientRepository clientRepository;
+    private final ClientRepository clientRepository;
 
-    @Autowired
-    private EmployeeRepository employeeRepository;
+    private final EmployeeRepository employeeRepository;
 
-    @Autowired
-    private ClientService clientService;
+    private final ClientService clientService;
 
     private final PasswordEncoder passwordEncoder;
 
 
-    public UserServiceImpl(ClientRepository clientRepository, EmployeeRepository employeeRepository,PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(ClientRepository clientRepository, EmployeeRepository employeeRepository,PasswordEncoder passwordEncoder,ClientService clientService) {
         this.clientRepository = clientRepository;
         this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
+        this.clientService = clientService;
     }
 
     public Client getClientByEmail(String email) {
@@ -65,7 +63,7 @@ public class UserServiceImpl implements UserDetailsService {
 
         client.setName(clientDTO.getName());
         client.setEmail(clientDTO.getEmail());
-        client.setPassword(clientDTO.getPassword());
+        //client.setPassword(clientDTO.getPassword());
         client.setBalance(clientDTO.getBalance());
         clientRepository.save(client);
 
@@ -86,7 +84,7 @@ public class UserServiceImpl implements UserDetailsService {
 
         employee.setName(employeeDTO.getName());
         employee.setEmail(employeeDTO.getEmail());
-        employee.setPassword(employeeDTO.getPassword());
+        //employee.setPassword(employeeDTO.getPassword());
         employee.setPhone(employeeDTO.getPhone());
         employee.setBirthDate(employeeDTO.getBirthDate());
         employeeRepository.save(employee);
@@ -101,7 +99,7 @@ public class UserServiceImpl implements UserDetailsService {
         if (client != null) {
             boolean isEnabled = !clientService.isClientBlocked(email); // Проверяем статус блокировки
             UserDetails userDetails = new User(client.getEmail(), client.getPassword(),
-                    true, true, true, isEnabled,
+                    isEnabled, true, true, true,
                     Collections.singletonList(new SimpleGrantedAuthority("ROLE_CLIENT")));
             logger.info("Client authenticated: {}, Roles: [ROLE_CLIENT], Enabled: {}", email, isEnabled);
             return userDetails;
@@ -110,6 +108,7 @@ public class UserServiceImpl implements UserDetailsService {
         Employee employee = employeeRepository.findByEmail(email).orElse(null);
         if (employee != null) {
             UserDetails userDetails = new User(employee.getEmail(), employee.getPassword(),
+                    true, true, true, true,
                     Collections.singletonList(new SimpleGrantedAuthority("ROLE_EMPLOYEE")));
             logger.info("Employee authenticated: {}, Roles: [ROLE_EMPLOYEE]", email);
             return userDetails;

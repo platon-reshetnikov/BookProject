@@ -65,15 +65,4 @@ public class EmployeeServiceImpl implements EmployeeService {
 //        return employeeMapper.toDTO(savedEmployee);
 //    }
 
-//    @Override
-//    public List<EmployeeDTO> getEmployeesByBirthDate(LocalDate birthDate) {
-//        List<Employee> employees = employeeRepository.findByBirthDate(birthDate);
-//        return employees.stream()
-//                .map(employeeMapper::toDTO)
-//                .collect(Collectors.toList());
-//    }
-
-//    public String getEmployeeNotFoundMessage(Locale locale) {
-//        return messageSource.getMessage("employee.not.found", null, locale);
-//    }
 }
