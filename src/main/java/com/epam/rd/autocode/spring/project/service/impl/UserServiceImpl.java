@@ -7,13 +7,12 @@ import com.epam.rd.autocode.spring.project.model.Employee;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.service.ClientService;
+import com.epam.rd.autocode.spring.project.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,34 +20,33 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 
 @Service
-public class UserServiceImpl implements UserDetailsService {
+public class UserServiceImpl implements UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final ClientRepository clientRepository;
-
     private final EmployeeRepository employeeRepository;
-
     private final ClientService clientService;
-
     private final PasswordEncoder passwordEncoder;
 
-
-    public UserServiceImpl(ClientRepository clientRepository, EmployeeRepository employeeRepository,PasswordEncoder passwordEncoder,ClientService clientService) {
+    public UserServiceImpl(ClientRepository clientRepository, EmployeeRepository employeeRepository, PasswordEncoder passwordEncoder, ClientService clientService) {
         this.clientRepository = clientRepository;
         this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
         this.clientService = clientService;
     }
 
+    @Override
     public Client getClientByEmail(String email) {
         return clientRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Client not found"));
     }
 
+    @Override
     public Employee getEmployeeByEmail(String email) {
         return employeeRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Employee not found"));
     }
 
+    @Override
     public void updateClient(String email, ClientDTO clientDTO) {
         logger.info("Updating client with email: {}", email);
         logger.info("ClientDTO data: {}", clientDTO);
@@ -63,13 +61,13 @@ public class UserServiceImpl implements UserDetailsService {
 
         client.setName(clientDTO.getName());
         client.setEmail(clientDTO.getEmail());
-        //client.setPassword(clientDTO.getPassword());
         client.setBalance(clientDTO.getBalance());
         clientRepository.save(client);
 
         logger.info("Client updated successfully: {}", client);
     }
 
+    @Override
     public void updateEmployee(String email, EmployeeDTO employeeDTO) {
         logger.info("Updating employee with email: {}", email);
         logger.info("EmployeeDTO data: {}", employeeDTO);
@@ -84,7 +82,6 @@ public class UserServiceImpl implements UserDetailsService {
 
         employee.setName(employeeDTO.getName());
         employee.setEmail(employeeDTO.getEmail());
-        //employee.setPassword(employeeDTO.getPassword());
         employee.setPhone(employeeDTO.getPhone());
         employee.setBirthDate(employeeDTO.getBirthDate());
         employeeRepository.save(employee);
@@ -118,11 +115,10 @@ public class UserServiceImpl implements UserDetailsService {
         throw new UsernameNotFoundException("User not found with email: " + email);
     }
 
-    // Новый метод для добавления клиента
+    @Override
     public void addClient(ClientDTO clientDTO) {
         logger.info("Registering new client with email: {}", clientDTO.getEmail());
 
-        // Проверка на существование клиента с таким email
         if (clientRepository.existsByEmail(clientDTO.getEmail())) {
             logger.error("Client with email {} already exists", clientDTO.getEmail());
             throw new RuntimeException("Client with email " + clientDTO.getEmail() + " already exists");
@@ -130,23 +126,20 @@ public class UserServiceImpl implements UserDetailsService {
 
         String hashedPassword = passwordEncoder.encode(clientDTO.getPassword());
 
-        // Создаём нового клиента
         Client client = new Client();
         client.setEmail(clientDTO.getEmail());
         client.setPassword(hashedPassword);
         client.setName(clientDTO.getName());
         client.setBalance(clientDTO.getBalance());
 
-        // Сохраняем клиента в базу данных
         clientRepository.save(client);
         logger.info("Client registered successfully: {}", client);
     }
 
-    // Новый метод для добавления сотрудника
+    @Override
     public void addEmployee(EmployeeDTO employeeDTO) {
         logger.info("Registering new employee with email: {}", employeeDTO.getEmail());
 
-        // Проверка на существование сотрудника с таким email
         if (employeeRepository.existsByEmail(employeeDTO.getEmail())) {
             logger.error("Employee with email {} already exists", employeeDTO.getEmail());
             throw new RuntimeException("Employee with email " + employeeDTO.getEmail() + " already exists");
@@ -154,7 +147,6 @@ public class UserServiceImpl implements UserDetailsService {
 
         String hashedPassword = passwordEncoder.encode(employeeDTO.getPassword());
 
-        // Создаём нового сотрудника
         Employee employee = new Employee();
         employee.setEmail(employeeDTO.getEmail());
         employee.setPassword(hashedPassword);
@@ -162,7 +154,6 @@ public class UserServiceImpl implements UserDetailsService {
         employee.setPhone(employeeDTO.getPhone());
         employee.setBirthDate(employeeDTO.getBirthDate());
 
-        // Сохраняем сотрудника в базу данных
         employeeRepository.save(employee);
         logger.info("Employee registered successfully: {}", employee);
     }
