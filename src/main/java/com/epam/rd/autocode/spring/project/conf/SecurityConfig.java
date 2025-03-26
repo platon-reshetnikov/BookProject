@@ -13,6 +13,8 @@ import org.springframework.security.oauth2.client.web.AuthorizationRequestReposi
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -28,7 +30,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .ignoringRequestMatchers(
+                                "/oauth2/**"  // OAuth2 endpoints typically don't need CSRF
+                        )
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/register", "/login", "/oauth2/**").permitAll()
                         .requestMatchers("/books", "/books/{name}").authenticated()
@@ -64,7 +71,11 @@ public class SecurityConfig {
                         )
                 )
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/login")
+                        .logoutUrl("/logout")  // Must match your logout request URL
+                        .logoutSuccessUrl("/login?logout=true")  // Must point to a valid endpoint
+                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET")) // Allow GET for logout
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID", "XSRF-TOKEN")
                         .permitAll()
                 )
                 .sessionManagement(session -> session
