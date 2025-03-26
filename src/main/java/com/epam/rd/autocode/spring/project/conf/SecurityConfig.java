@@ -1,6 +1,7 @@
 package com.epam.rd.autocode.spring.project.conf;
 
 import com.epam.rd.autocode.spring.project.auth.CustomUserDetailsService;
+import com.epam.rd.autocode.spring.project.service.impl.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -8,15 +9,20 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
+import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+    public SecurityConfig(CustomUserDetailsService userDetailsService, CustomOAuth2UserService customOAuth2UserService) {
         this.userDetailsService = userDetailsService;
+        this.customOAuth2UserService = customOAuth2UserService;
     }
 
     @Bean
@@ -49,10 +55,23 @@ public class SecurityConfig {
                         .loginPage("/login") // Redirect to the custom login page
                         .defaultSuccessUrl("/books", true) // Redirect after successful OAuth2 login
                         .failureUrl("/login?error=true") // Redirect on OAuth2 login failure
+                        .authorizationEndpoint(auth -> auth // Authorization Endpoint Configuration
+                                .baseUri("/oauth2/authorization")
+                                .authorizationRequestRepository(authorizationRequestRepository())
+                        )
+                        .userInfoEndpoint(userInfo -> userInfo // User Info Endpoint Configuration
+                                .userService(customOAuth2UserService)
+                        )
                 )
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login")
                         .permitAll()
+                )
+                .sessionManagement(session -> session
+                        .sessionFixation().migrateSession()  // Prevents session fixation attacks
+                        .maximumSessions(1)                  // Allows only 1 session per user
+                        .maxSessionsPreventsLogin(false)     // Terminates oldest session when new one starts
+                        .expiredUrl("/login?expired")        // Redirect when session is invalidated
                 )
                 .requiresChannel(channel -> channel
                         .anyRequest().requiresSecure() // Force HTTPS for all requests
@@ -65,5 +84,10 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository() {
+        return new HttpSessionOAuth2AuthorizationRequestRepository();
     }
 }
