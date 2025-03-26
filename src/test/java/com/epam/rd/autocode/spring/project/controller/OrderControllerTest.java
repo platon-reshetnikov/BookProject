@@ -18,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -75,6 +76,7 @@ public class OrderControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "employee@example.com", roles = "EMPLOYEE")
     void getOrdersByClient_Success_ReturnsOrdersView() throws Exception {
         List<OrderDTO> orders = Collections.singletonList(orderDTO);
         when(orderService.getOrdersByClient("client@example.com")).thenReturn(orders);
