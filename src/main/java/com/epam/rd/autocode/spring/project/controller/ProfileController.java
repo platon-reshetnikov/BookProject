@@ -5,6 +5,7 @@ import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.mapper.UserWrapper;
 import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.model.Employee;
+import com.epam.rd.autocode.spring.project.service.UserService;
 import com.epam.rd.autocode.spring.project.service.impl.UserServiceImpl;
 
 import org.slf4j.Logger;
@@ -27,12 +28,12 @@ public class ProfileController {
 
     private static final Logger logger = LoggerFactory.getLogger(ProfileController.class);
 
-    private final UserServiceImpl userService;
+    private final UserService userService;
 
     @Autowired
     private MessageSource messageSource;
 
-    public ProfileController(UserServiceImpl userService) {
+    public ProfileController(UserService userService) {
         this.userService = userService;
     }
 

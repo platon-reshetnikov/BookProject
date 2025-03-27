@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,6 +36,7 @@ import static org.mockito.Mockito.*;
 @WebMvcTest(ClientController.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
+@WithMockUser
 public class ClientControllerTest {
 
     @Autowired

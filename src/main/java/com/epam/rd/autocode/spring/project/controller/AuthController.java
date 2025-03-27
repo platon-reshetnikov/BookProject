@@ -25,14 +25,14 @@ import java.util.Set;
 @RequestMapping("/register")
 public class AuthController {
 
-    private final UserServiceImpl userService;
+    private final UserService userService;
     @Autowired
     private MessageSource messageSource;
 
     private final Validator validator;
 
     @Autowired
-    public AuthController(UserServiceImpl userService,Validator validator) {
+    public AuthController(UserService userService,Validator validator) {
         this.userService = userService;
         this.validator = validator;
     }
