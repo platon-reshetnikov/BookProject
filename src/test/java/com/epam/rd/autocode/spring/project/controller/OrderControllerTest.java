@@ -1,5 +1,6 @@
 package com.epam.rd.autocode.spring.project.controller;
 
+import com.epam.rd.autocode.spring.project.conf.SecurityConfigTestJWT;
 import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
 import com.epam.rd.autocode.spring.project.dto.OrderDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
@@ -9,10 +10,13 @@ import com.epam.rd.autocode.spring.project.service.OrderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -32,7 +36,12 @@ import static org.mockito.Mockito.*;
 @WebMvcTest(OrderController.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
+@Import(SecurityConfigTestJWT.class)
+
 public class OrderControllerTest {
+
+    @Qualifier("userServiceImpl")
+    private UserDetailsService userDetailsService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -87,6 +96,16 @@ public class OrderControllerTest {
                 .andExpect(MockMvcResultMatchers.model().attribute("orders", orders))
                 .andExpect(MockMvcResultMatchers.model().attribute("clientEmail", "client@example.com"));
     }
+
+//    @Test
+//    void getOrdersByClient_NotFound_ReturnsOrdersViewWithError() throws Exception {
+//        when(orderService.getOrdersByClient("unknown@example.com")).thenThrow(new NotFoundException("Client not found"));
+//
+//        mockMvc.perform(MockMvcRequestBuilders.get("/orders/client/unknown@example.com"))
+//                .andExpect(MockMvcResultMatchers.status().isOk())
+//                .andExpect(MockMvcResultMatchers.view().name("orders"))
+//                .andExpect(MockMvcResultMatchers.model().attribute("errorMessage", "Client not found: client@example.com"));
+//    }
 
     @Test
     void getAllOrders_Success_ReturnsOrdersView() throws Exception {

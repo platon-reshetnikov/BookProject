@@ -1,19 +1,22 @@
 package com.epam.rd.autocode.spring.project.controller;
 
+import com.epam.rd.autocode.spring.project.conf.SecurityConfigTestJWT;
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.mapper.UserWrapper;
 import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.model.Employee;
 import com.epam.rd.autocode.spring.project.service.UserService;
-import com.epam.rd.autocode.spring.project.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,7 +36,12 @@ import static org.mockito.Mockito.*;
 @WebMvcTest(ProfileController.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
+@Import(SecurityConfigTestJWT.class)
+
 public class ProfileControllerTest {
+    @Qualifier("userServiceImpl")
+    private UserDetailsService userDetailsService;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -156,4 +164,81 @@ public class ProfileControllerTest {
 
         verify(userService, times(1)).updateEmployee(eq("employee@example.com"), eq(employeeDTO));
     }
+
+//    @Test
+//    void saveProfile_Client_WithErrors_ReturnsEditProfileView() throws Exception {
+//        UserWrapper userWrapper = new UserWrapper();
+//        ClientDTO invalidClientDTO = new ClientDTO("", "password", "", BigDecimal.valueOf(-1)); // Некорректные данные
+//        userWrapper.setClientDTO(invalidClientDTO);
+//
+//        mockMvc.perform(MockMvcRequestBuilders.post("/profile/edit")
+//                        .param("userType", "client")
+//                        .flashAttr("userWrapper", userWrapper)
+//                        .with(SecurityMockMvcRequestPostProcessors.user("client@example.com").roles("CLIENT"))
+//                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+//                .andExpect(MockMvcResultMatchers.status().isOk())
+//                .andExpect(MockMvcResultMatchers.view().name("edit-profile"))
+//                .andExpect(MockMvcResultMatchers.model().attribute("userType", "client"));
+//
+//        verify(userService, never()).updateClient(any(), any());
+//    }
+//
+//    @Test
+//    void saveProfile_Employee_WithErrors_ReturnsEditProfileView() throws Exception {
+//        UserWrapper userWrapper = new UserWrapper();
+//        EmployeeDTO invalidEmployeeDTO = new EmployeeDTO("", "password", "", "invalid", null); // Некорректные данные
+//        userWrapper.setEmployeeDTO(invalidEmployeeDTO);
+//
+//        mockMvc.perform(MockMvcRequestBuilders.post("/profile/edit")
+//                        .param("userType", "employee")
+//                        .flashAttr("userWrapper", userWrapper)
+//                        .with(SecurityMockMvcRequestPostProcessors.user("employee@example.com").roles("EMPLOYEE")))
+//                .andExpect(MockMvcResultMatchers.status().isOk())
+//                .andExpect(MockMvcResultMatchers.view().name("edit-profile"))
+//                .andExpect(MockMvcResultMatchers.model().attribute("userType", "employee"));
+//
+//        verify(userService, never()).updateEmployee(any(), any());
+//    }
+//
+//    @Test
+//    void saveProfile_Client_NullDTO_ReturnsEditProfileViewWithError() throws Exception {
+//        UserWrapper userWrapper = new UserWrapper(); // clientDTO не установлен
+//
+//        mockMvc.perform(MockMvcRequestBuilders.post("/profile/edit")
+//                        .param("userType", "client")
+//                        .flashAttr("userWrapper", userWrapper)
+//                        .with(SecurityMockMvcRequestPostProcessors.user("client@example.com").roles("CLIENT")))
+//                .andExpect(MockMvcResultMatchers.status().isOk())
+//                .andExpect(MockMvcResultMatchers.view().name("edit-profile"))
+//                .andExpect(MockMvcResultMatchers.model().attribute("error", "Client data is missing"));
+//
+//        verify(userService, never()).updateClient(any(), any());
+//    }
+//
+//    @Test
+//    void saveProfile_InvalidUserType_ReturnsEditProfileViewWithError() throws Exception {
+//        UserWrapper userWrapper = new UserWrapper();
+//
+//        mockMvc.perform(MockMvcRequestBuilders.post("/profile/edit")
+//                        .param("userType", "invalid")
+//                        .flashAttr("userWrapper", userWrapper)
+//                        .with(SecurityMockMvcRequestPostProcessors.user("client@example.com").roles("CLIENT")))
+//                .andExpect(MockMvcResultMatchers.status().isOk())
+//                .andExpect(MockMvcResultMatchers.view().name("edit-profile"))
+//                .andExpect(MockMvcResultMatchers.model().attribute("error", "Invalid user type: unknown"));
+//    }
+//
+//    @Test
+//    void saveProfile_Unauthenticated_RedirectsToLogin() throws Exception {
+//        UserWrapper userWrapper = new UserWrapper();
+//        userWrapper.setClientDTO(clientDTO);
+//
+//        mockMvc.perform(MockMvcRequestBuilders.post("/profile/edit")
+//                        .param("userType", "client")
+//                        .flashAttr("userWrapper", userWrapper))
+//                .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
+//                .andExpect(MockMvcResultMatchers.redirectedUrl("/login"));
+//
+//        verify(userService, never()).updateClient(any(), any());
+//    }
 }

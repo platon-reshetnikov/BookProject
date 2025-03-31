@@ -1,20 +1,20 @@
 package com.epam.rd.autocode.spring.project.controller;
 
+import com.epam.rd.autocode.spring.project.conf.SecurityConfigTestJWT;
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.mapper.UserWrapper;
 import com.epam.rd.autocode.spring.project.service.UserService;
-import com.epam.rd.autocode.spring.project.service.impl.UserServiceImpl;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Path;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
@@ -28,7 +28,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Locale;
-import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -37,7 +36,11 @@ import static org.mockito.Mockito.*;
 @WebMvcTest(AuthController.class)
 @ActiveProfiles("test")
 @WithMockUser
+@Import(SecurityConfigTestJWT.class)
+
 public class AuthControllerTest {
+    @Qualifier("userServiceImpl")
+    private UserDetailsService userDetailsService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -123,4 +126,37 @@ public class AuthControllerTest {
         verify(userService, times(1)).addEmployee(employeeDTO);
     }
 
+//    @Test
+//    void registerUser_InvalidUserType_ShouldReturnError() throws Exception {
+//        mockMvc.perform(MockMvcRequestBuilders.post("/register")
+//                        .param("userType", "invalid")
+//                        .flashAttr("userWrapper", userWrapper))
+//                .andExpect(MockMvcResultMatchers.status().isOk())
+//                .andExpect(MockMvcResultMatchers.view().name("register"))
+//                .andExpect(MockMvcResultMatchers.model().attribute("submitted", true))
+//                .andExpect(MockMvcResultMatchers.model().attributeExists("error"));
+//
+//        verify(userService, never()).addClient(any());
+//        verify(userService, never()).addEmployee(any());
+//    }
+
+//    @Test
+//    void registerClient_InvalidData_ShouldReturnValidationErrors() throws Exception {
+//        ConstraintViolation<ClientDTO> violation = mock(ConstraintViolation.class);
+//        Path propertyPath = mock(Path.class);
+//        when(propertyPath.toString()).thenReturn("email");
+//        when(violation.getPropertyPath()).thenReturn(propertyPath);
+//        when(violation.getMessage()).thenReturn("Invalid email");
+//
+//        when(validator.validate(any(ClientDTO.class), eq(ClientValidationGroup.class)))
+//                .thenReturn(Set.of(violation));
+//
+//        mockMvc.perform(MockMvcRequestBuilders.post("/register")
+//                        .param("userType", "client")
+//                        .flashAttr("userWrapper", userWrapper))
+//                .andExpect(MockMvcResultMatchers.status().isOk())
+//                .andExpect(MockMvcResultMatchers.view().name("register"))
+//                .andExpect(MockMvcResultMatchers.model().attribute("submitted", true))
+//                .andExpect(MockMvcResultMatchers.model().attributeHasFieldErrors("userWrapper", "clientDTO.email"));
+//    }
 }
