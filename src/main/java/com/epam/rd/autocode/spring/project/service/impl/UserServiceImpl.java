@@ -8,8 +8,10 @@ import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import com.epam.rd.autocode.spring.project.service.UserService;
+import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,14 +22,16 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 
 @Service
+@Primary
 public class UserServiceImpl implements UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final ClientRepository clientRepository;
     private final EmployeeRepository employeeRepository;
-    private final ClientService clientService;
     private final PasswordEncoder passwordEncoder;
+    @Lazy
+    private final ClientService clientService;
 
     public UserServiceImpl(ClientRepository clientRepository, EmployeeRepository employeeRepository, PasswordEncoder passwordEncoder, ClientService clientService) {
         this.clientRepository = clientRepository;
