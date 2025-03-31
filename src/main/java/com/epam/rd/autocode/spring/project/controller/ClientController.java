@@ -16,6 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
@@ -47,20 +51,47 @@ public class ClientController {
 
     @GetMapping("/manage")
     @PreAuthorize("hasRole('EMPLOYEE')")
-    public String getAllClients(Model model, @RequestParam(name = "lang", required = false) String lang) {
+    public String getAllClients(Model model,
+                                @RequestParam(name = "page", defaultValue = "0") int page,
+                                @RequestParam(name = "size", defaultValue = "10") int size,
+                                @RequestParam(name = "sort", defaultValue = "email,asc") String sort,
+                                @RequestParam(name = "search", required = false) String search,
+                                @RequestParam(name = "lang", required = false) String lang) {
         logger.info("Employee accessing all clients");
         if (lang != null && !lang.isBlank()) {
             logger.info("Переключение локали на: {} (из /clients/manage)", lang);
         } else {
             logger.info("Использована локаль по умолчанию на /clients/manage: {}", Locale.getDefault());
         }
-        List<ClientDTO> clients = clientService.getAllClients();
-        model.addAttribute("clients", clients);
+
+        // Парсим параметры сортировки
+        String[] sortParams = sort.split(",");
+        String sortField = sortParams[0];
+        Sort.Direction sortDirection = Sort.Direction.fromString(sortParams[1]);
+        Sort sortOrder = Sort.by(sortDirection, sortField);
+
+        // Создаем объект Pageable
+        Pageable pageable = PageRequest.of(page, size, sortOrder);
+
+        // Получаем данные из сервиса
+        Page<ClientDTO> clientPage = clientService.getAllClients(pageable, search);
+
+        // Добавляем данные в модель
+        model.addAttribute("clients", clientPage.getContent());
+        model.addAttribute("currentPage", clientPage.getNumber());
+        model.addAttribute("totalPages", clientPage.getTotalPages());
+        model.addAttribute("totalItems", clientPage.getTotalElements());
+        model.addAttribute("pageSize", size);
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDirection", sortDirection.toString().toLowerCase());
+        model.addAttribute("search", search);
+
         Map<String, Boolean> blockedStatus = new HashMap<>();
-        for (ClientDTO client : clients) {
+        for (ClientDTO client : clientPage.getContent()) {
             blockedStatus.put(client.getEmail(), clientService.isClientBlocked(client.getEmail()));
         }
         model.addAttribute("clientBlockedStatus", blockedStatus);
+
         return "clients";
     }
 
@@ -106,20 +137,6 @@ public class ClientController {
             model.addAttribute("errorMessage", message);
         }
         return "redirect:/clients/manage";
-    }
-
-    @GetMapping("/list")
-    @PreAuthorize("hasRole('EMPLOYEE')")
-    public String getClientList(Model model, @RequestParam(name = "lang", required = false) String lang) {
-        logger.info("Employee accessing client list");
-        if (lang != null && !lang.isBlank()) {
-            logger.info("Переключение локали на: {} (из /clients/list)", lang);
-        } else {
-            logger.info("Использована локаль по умолчанию на /clients/list: {}", Locale.getDefault());
-        }
-        List<ClientDTO> clients = clientService.getAllClients();
-        model.addAttribute("clients", clients);
-        return "client-list";
     }
 
     @PostMapping("/basket/add/{bookName}")

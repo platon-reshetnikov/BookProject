@@ -13,9 +13,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -46,25 +48,33 @@ public class BookServiceImplTest {
     }
 
     @Test
-    void getAllBooks_ReturnsListOfBooks(){
-        when(bookRepository.findAll()).thenReturn(Arrays.asList(book));
+    void getAllBooks_ReturnsListOfBooks() {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "name"));
+        List<Book> books = Collections.singletonList(book);
+        Page<Book> bookPage = new PageImpl<>(books, pageable, books.size());
+
+        when(bookRepository.findAll(pageable)).thenReturn(bookPage);
         when(bookMapper.toDTO(book)).thenReturn(bookDTO);
 
-        var result = bookService.getAllBooks();
+        Page<BookDTO> result = bookService.getAllBooks(pageable, null);
 
-        assertEquals(1, result.size());
-        assertEquals(bookDTO, result.get(0));
-        verify(bookRepository, times(1)).findAll();
+        assertEquals(1, result.getContent().size());
+        assertEquals(bookDTO, result.getContent().get(0));
+        verify(bookRepository, times(1)).findAll(pageable);
         verify(bookMapper, times(1)).toDTO(book);
     }
 
     @Test
-    void getAllBooks_EmptyList_ReturnsEmptyList(){
-        when(bookRepository.findAll()).thenReturn(Collections.emptyList());
+    void getAllBooks_EmptyList_ReturnsEmptyList() {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "name"));
+        Page<Book> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        var result = bookService.getAllBooks();
-        assertTrue(result.isEmpty());
-        verify(bookRepository, times(1)).findAll();
+        when(bookRepository.findAll(pageable)).thenReturn(emptyPage);
+
+        Page<BookDTO> result = bookService.getAllBooks(pageable, null);
+
+        assertTrue(result.getContent().isEmpty());
+        verify(bookRepository, times(1)).findAll(pageable);
         verify(bookMapper, never()).toDTO(any());
     }
 

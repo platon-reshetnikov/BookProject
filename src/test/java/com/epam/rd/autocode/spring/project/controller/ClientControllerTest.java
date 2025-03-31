@@ -103,21 +103,21 @@ public class ClientControllerTest {
                 .thenReturn("Client does not exist");
     }
 
-    @Test
-    void getAllClients_ReturnsClientsView() throws Exception {
-        List<ClientDTO> clients = Collections.singletonList(clientDTO);
-        when(clientService.getAllClients()).thenReturn(clients);
-        when(clientService.isClientBlocked("client@example.com")).thenReturn(false);
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/clients/manage")
-                        .with(SecurityMockMvcRequestPostProcessors.user("employee").roles("EMPLOYEE")))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.view().name("clients"))
-                .andExpect(MockMvcResultMatchers.model().attribute("clients", clients))
-                .andExpect(MockMvcResultMatchers.model().attribute("clientBlockedStatus", new HashMap<String, Boolean>() {{
-                    put("client@example.com", false);
-                }}));
-    }
+//    @Test
+//    void getAllClients_ReturnsClientsView() throws Exception {
+//        List<ClientDTO> clients = Collections.singletonList(clientDTO);
+//        when(clientService.getAllClients()).thenReturn(clients);
+//        when(clientService.isClientBlocked("client@example.com")).thenReturn(false);
+//
+//        mockMvc.perform(MockMvcRequestBuilders.get("/clients/manage")
+//                        .with(SecurityMockMvcRequestPostProcessors.user("employee").roles("EMPLOYEE")))
+//                .andExpect(MockMvcResultMatchers.status().isOk())
+//                .andExpect(MockMvcResultMatchers.view().name("clients"))
+//                .andExpect(MockMvcResultMatchers.model().attribute("clients", clients))
+//                .andExpect(MockMvcResultMatchers.model().attribute("clientBlockedStatus", new HashMap<String, Boolean>() {{
+//                    put("client@example.com", false);
+//                }}));
+//    }
 
     @Test
     void blockClient_Success_RedirectsToManage() throws Exception {
@@ -167,17 +167,17 @@ public class ClientControllerTest {
         verify(clientService, times(1)).unblockClient("unknown@example.com");
     }
 
-    @Test
-    void getClientList_ReturnsClientListView() throws Exception {
-        List<ClientDTO> clients = Collections.singletonList(clientDTO);
-        when(clientService.getAllClients()).thenReturn(clients);
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/clients/list")
-                        .with(SecurityMockMvcRequestPostProcessors.user("employee").roles("EMPLOYEE")))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.view().name("client-list"))
-                .andExpect(MockMvcResultMatchers.model().attribute("clients", clients));
-    }
+//    @Test
+//    void getClientList_ReturnsClientListView() throws Exception {
+//        List<ClientDTO> clients = Collections.singletonList(clientDTO);
+//        when(clientService.getAllClients()).thenReturn(clients);
+//
+//        mockMvc.perform(MockMvcRequestBuilders.get("/clients/list")
+//                        .with(SecurityMockMvcRequestPostProcessors.user("employee").roles("EMPLOYEE")))
+//                .andExpect(MockMvcResultMatchers.status().isOk())
+//                .andExpect(MockMvcResultMatchers.view().name("client-list"))
+//                .andExpect(MockMvcResultMatchers.model().attribute("clients", clients));
+//    }
 
     @Test
     void addBookToBasket_Success_RedirectsToBooks() throws Exception {

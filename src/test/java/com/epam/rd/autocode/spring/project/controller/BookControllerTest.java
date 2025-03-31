@@ -10,14 +10,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -34,7 +37,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@WebMvcTest(BookController.class)
+@SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 public class BookControllerTest {
@@ -77,13 +80,28 @@ public class BookControllerTest {
     @Test
     @WithMockUser(authorities = {"USER"})
     void getAllBooks_ReturnsBooksViewWithBookList() throws Exception {
+        // Подготовка данных
         List<BookDTO> books = Collections.singletonList(bookDTO);
-        when(bookService.getAllBooks()).thenReturn(books);
+        Page<BookDTO> bookPage = new PageImpl<>(books, PageRequest.of(0, 10), books.size());
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/books"))
+        // Настройка поведения сервиса
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "name"));
+        when(bookService.getAllBooks(pageable, null)).thenReturn(bookPage);
+
+        // Выполнение запроса и проверка
+        mockMvc.perform(MockMvcRequestBuilders.get("/books")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "name,asc"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.view().name("books"))
-                .andExpect(MockMvcResultMatchers.model().attribute("books", books));
+                .andExpect(MockMvcResultMatchers.model().attribute("books", books))
+                .andExpect(MockMvcResultMatchers.model().attribute("currentPage", 0))
+                .andExpect(MockMvcResultMatchers.model().attribute("totalPages", 1))
+                .andExpect(MockMvcResultMatchers.model().attribute("totalItems", 1L))
+                .andExpect(MockMvcResultMatchers.model().attribute("pageSize", 10))
+                .andExpect(MockMvcResultMatchers.model().attribute("sortField", "name"))
+                .andExpect(MockMvcResultMatchers.model().attribute("sortDirection", "asc"));
     }
 
     @Test
@@ -100,7 +118,7 @@ public class BookControllerTest {
     @Test
     @WithMockUser(authorities = {"USER"})
     void getBookByName_ThrowsNotFoundException_Returns404() throws Exception {
-        when(bookService.getBookByName("Unknown Book")).thenReturn(null);
+        when(bookService.getBookByName("Unknown Book")).thenThrow(new NotFoundException("Book not found with name: Unknown Book"));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/books/Unknown Book"))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -120,6 +138,8 @@ public class BookControllerTest {
     @Test
     @WithMockUser(authorities = {"EMPLOYEE"})
     void addBook_Success_RedirectsToBooks() throws Exception {
+        when(bookService.addBook(bookDTO)).thenReturn(bookDTO);
+
         mockMvc.perform(MockMvcRequestBuilders.post("/books/add")
                         .flashAttr("book", bookDTO)
                         .with(SecurityMockMvcRequestPostProcessors.csrf()))
@@ -162,7 +182,7 @@ public class BookControllerTest {
     @Test
     @WithMockUser(authorities = {"EMPLOYEE"})
     void showEditBookForm_ThrowsNotFoundException_Returns404() throws Exception {
-        when(bookService.getBookByName("Unknown Book")).thenReturn(null);
+        when(bookService.getBookByName("Unknown Book")).thenThrow(new NotFoundException("Book not found with name: Unknown Book"));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/books/edit/Unknown Book"))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -171,6 +191,8 @@ public class BookControllerTest {
     @Test
     @WithMockUser(authorities = {"EMPLOYEE"})
     void updateBook_Success_RedirectsToBooks() throws Exception {
+        when(bookService.updateBookByName(eq("Test Book"), eq(bookDTO))).thenReturn(bookDTO);
+
         mockMvc.perform(MockMvcRequestBuilders.post("/books/update")
                         .flashAttr("book", bookDTO)
                         .with(SecurityMockMvcRequestPostProcessors.csrf()))
@@ -184,7 +206,7 @@ public class BookControllerTest {
     @Test
     @WithMockUser(authorities = {"EMPLOYEE"})
     void updateBook_ValidationErrors_ReturnsBookForm() throws Exception {
-        BookDTO invalidBook = new BookDTO(); // Пустой объект вызовет ошибки валидации
+        BookDTO invalidBook = new BookDTO();
         BindingResult bindingResult = new BeanPropertyBindingResult(invalidBook, "book");
         bindingResult.rejectValue("name", "NotNull", "Name is required");
 
@@ -197,45 +219,31 @@ public class BookControllerTest {
         verify(bookService, never()).updateBookByName(any(), any());
     }
 
-//    @Test
-//    @WithMockUser(authorities = {"EMPLOYEE"})
-//    void deleteBook_Success_RedirectsToBooks() throws Exception {
-//        doNothing().when(bookService).deleteBookByName("Test Book");
-//        when(messageSource.getMessage(eq("book.deleted"), any(), any(Locale.class)))
-//                .thenReturn("Book Test Book has been deleted successfully");
-//
-//        mockMvc.perform(MockMvcRequestBuilders.post("/books/delete/{name}", "Test Book")
-//                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
-//                .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
-//                .andExpect(MockMvcResultMatchers.redirectedUrl("/books"))
-//                .andExpect(MockMvcResultMatchers.flash().attribute("successMessage", "Book Test Book has been deleted successfully"));
-//
-//        verify(bookService, times(1)).deleteBookByName("Test Book");
-//    }
-//
-//    @Test
-//    @WithMockUser(authorities = {"EMPLOYEE"})
-//    void deleteBook_NotFound_RedirectsToBooksWithError() throws Exception {
-//        doThrow(new NotFoundException("Book not found")).when(bookService).deleteBookByName("Unknown Book");
-//
-//        mockMvc.perform(MockMvcRequestBuilders.post("/books/delete/Unknown Book"))
-//                .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
-//                .andExpect(MockMvcResultMatchers.redirectedUrl("/books"))
-//                .andExpect(MockMvcResultMatchers.flash().attribute("errorMessage", "Book not found with name: Unknown Book"));
-//
-//        verify(bookService, times(1)).deleteBookByName("Unknown Book");
-//    }
-//
-//    @Test
-//    void getAllBooks_Unauthenticated_Returns403() throws Exception {
-//        mockMvc.perform(MockMvcRequestBuilders.get("/books"))
-//                .andExpect(MockMvcResultMatchers.status().isForbidden());
-//    }
-//
-//    @Test
-//    @WithMockUser(authorities = {"USER"})
-//    void showAddBookForm_Unauthorized_Returns403() throws Exception {
-//        mockMvc.perform(MockMvcRequestBuilders.get("/books/add"))
-//                .andExpect(MockMvcResultMatchers.status().isForbidden());
-//    }
+    @Test
+    @WithMockUser(authorities = {"EMPLOYEE"})
+    void deleteBook_Success_RedirectsToBooks() throws Exception {
+        doNothing().when(bookService).deleteBookByName("Test Book");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/books/delete/Test Book")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
+                .andExpect(MockMvcResultMatchers.redirectedUrl("/books"))
+                .andExpect(MockMvcResultMatchers.flash().attribute("successMessage", "Book Test Book has been deleted successfully"));
+
+        verify(bookService, times(1)).deleteBookByName("Test Book");
+    }
+
+    @Test
+    @WithMockUser(authorities = {"EMPLOYEE"})
+    void deleteBook_NotFound_RedirectsToBooksWithError() throws Exception {
+        doThrow(new NotFoundException("Book not found with name: Test Book")).when(bookService).deleteBookByName("Test Book");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/books/delete/Test Book")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
+                .andExpect(MockMvcResultMatchers.redirectedUrl("/books"))
+                .andExpect(MockMvcResultMatchers.flash().attribute("errorMessage", "Book not found with name: Test Book"));
+
+        verify(bookService, times(1)).deleteBookByName("Test Book");
+    }
 }

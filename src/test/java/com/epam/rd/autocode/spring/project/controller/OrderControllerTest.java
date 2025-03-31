@@ -88,16 +88,6 @@ public class OrderControllerTest {
                 .andExpect(MockMvcResultMatchers.model().attribute("clientEmail", "client@example.com"));
     }
 
-//    @Test
-//    void getOrdersByClient_NotFound_ReturnsOrdersViewWithError() throws Exception {
-//        when(orderService.getOrdersByClient("unknown@example.com")).thenThrow(new NotFoundException("Client not found"));
-//
-//        mockMvc.perform(MockMvcRequestBuilders.get("/orders/client/unknown@example.com"))
-//                .andExpect(MockMvcResultMatchers.status().isOk())
-//                .andExpect(MockMvcResultMatchers.view().name("orders"))
-//                .andExpect(MockMvcResultMatchers.model().attribute("errorMessage", "Client not found: client@example.com"));
-//    }
-
     @Test
     void getAllOrders_Success_ReturnsOrdersView() throws Exception {
         List<OrderDTO> orders = Collections.singletonList(orderDTO);

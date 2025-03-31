@@ -89,16 +89,35 @@
         .language-selector a:hover {
             text-decoration: underline;
         }
+        .pagination {
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .search-form {
+            margin-bottom: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 <div class="clients-container">
     <div class="language-selector">
-        <a th:href="@{/clients/manage(lang='en')}" th:text="#{lang.english}">English</a>
-        <a th:href="@{/clients/manage(lang='de')}" th:text="#{lang.german}">Deutsch</a>
+        <a th:href="@{/clients/manage(lang='en', page=${currentPage}, size=${pageSize}, sort=${sortField + ',' + sortDirection}, search=${search})}" th:text="#{lang.english}">English</a>
+        <a th:href="@{/clients/manage(lang='de', page=${currentPage}, size=${pageSize}, sort=${sortField + ',' + sortDirection}, search=${search})}" th:text="#{lang.german}">Deutsch</a>
     </div>
 
     <h1 th:text="#{clients.title}">Clients</h1>
+
+    <!-- Форма поиска -->
+    <div class="search-form">
+        <form th:action="@{/clients/manage}" method="get" class="d-inline-flex">
+            <input type="text" name="search" th:value="${search}" class="form-control me-2" placeholder="Search by email or name" />
+            <input type="hidden" name="page" value="0" />
+            <input type="hidden" name="size" th:value="${pageSize}" />
+            <input type="hidden" name="sort" th:value="${sortField + ',' + sortDirection}" />
+            <button type="submit" class="btn btn-primary" th:text="#{search.button}">Search</button>
+        </form>
+    </div>
 
     <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
     <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
@@ -107,9 +126,21 @@
         <table class="table table-striped">
             <thead>
             <tr>
-                <th th:text="#{clients.email}">Email</th>
-                <th th:text="#{clients.name}">Name</th>
-                <th th:text="#{clients.balance}">Balance</th>
+                <th>
+                    <a th:with="newDirection=${sortField == 'email' and sortDirection == 'asc' ? 'desc' : 'asc'}"
+                       th:href="@{/clients/manage(page=${currentPage}, size=${pageSize}, sort='email,' + ${newDirection}, search=${search})}"
+                       th:text="#{clients.email}">Email</a>
+                </th>
+                <th>
+                    <a th:with="newDirection=${sortField == 'name' and sortDirection == 'asc' ? 'desc' : 'asc'}"
+                       th:href="@{/clients/manage(page=${currentPage}, size=${pageSize}, sort='name,' + ${newDirection}, search=${search})}"
+                       th:text="#{clients.name}">Name</a>
+                </th>
+                <th>
+                    <a th:with="newDirection=${sortField == 'balance' and sortDirection == 'asc' ? 'desc' : 'asc'}"
+                       th:href="@{/clients/manage(page=${currentPage}, size=${pageSize}, sort='balance,' + ${newDirection}, search=${search})}"
+                       th:text="#{clients.balance}">Balance</a>
+                </th>
                 <th th:text="#{clients.blocked}">Blocked</th>
                 <th th:text="#{clients.actions}">Actions</th>
             </tr>
@@ -137,6 +168,21 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Пагинация -->
+    <nav th:if="${totalPages > 1}" aria-label="Page navigation">
+        <ul class="pagination">
+            <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{/clients/manage(page=${currentPage - 1}, size=${pageSize}, sort=${sortField + ',' + sortDirection}, search=${search})}" th:text="#{pagination.previous}">Previous</a>
+            </li>
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i ? 'active' : ''}">
+                <a class="page-link" th:href="@{/clients/manage(page=${i}, size=${pageSize}, sort=${sortField + ',' + sortDirection}, search=${search})}" th:text="${i + 1}"></a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{/clients/manage(page=${currentPage + 1}, size=${pageSize}, sort=${sortField + ',' + sortDirection}, search=${search})}" th:text="#{pagination.next}">Next</a>
+            </li>
+        </ul>
+    </nav>
 
     <div class="mt-3 text-center">
         <a th:href="@{/books}" class="btn btn-secondary" th:text="#{return.books}">Back to Books</a>
