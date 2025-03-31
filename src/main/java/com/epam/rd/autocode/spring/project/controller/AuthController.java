@@ -5,7 +5,6 @@ import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.exception.DuplicateResourceException;
 import com.epam.rd.autocode.spring.project.mapper.UserWrapper;
 import com.epam.rd.autocode.spring.project.service.UserService;
-import com.epam.rd.autocode.spring.project.service.impl.UserServiceImpl;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
