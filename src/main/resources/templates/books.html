@@ -119,22 +119,40 @@
     .language-selector a:hover {
       text-decoration: underline;
     }
+    .pagination {
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .search-form {
+      margin-bottom: 20px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
 <div class="books-container">
   <div class="language-selector">
-    <a th:href="@{/books(lang='en')}" th:text="#{lang.english}">English</a>
-    <a th:href="@{/books(lang='de')}" th:text="#{lang.german}">Deutsch</a>
+    <a th:href="@{/books(lang='en', page=${currentPage}, size=${pageSize}, sort=${sortField + ',' + sortDirection}, search=${search})}" th:text="#{lang.english}">English</a>
+    <a th:href="@{/books(lang='de', page=${currentPage}, size=${pageSize}, sort=${sortField + ',' + sortDirection}, search=${search})}" th:text="#{lang.german}">Deutsch</a>
   </div>
 
   <h1 th:text="#{books.title}">Book List</h1>
+
+  <!-- Форма поиска -->
+  <div class="search-form">
+    <form th:action="@{/books}" method="get" class="d-inline-flex">
+      <input type="text" name="search" th:value="${search}" class="form-control me-2" placeholder="Search by name" />
+      <input type="hidden" name="page" value="0" />
+      <input type="hidden" name="size" th:value="${pageSize}" />
+      <input type="hidden" name="sort" th:value="${sortField + ',' + sortDirection}" />
+      <button type="submit" class="btn btn-primary" th:text="#{search.button}">Search</button>
+    </form>
+  </div>
 
   <div class="button-group" sec:authorize="hasRole('EMPLOYEE')">
     <a th:href="@{/books/add}" class="btn btn-success" th:text="#{book.add}">Add Book</a>
     <a th:href="@{/orders}" class="btn btn-primary" th:text="#{orders.view}">View Orders</a>
     <a th:href="@{/clients/manage}" class="btn btn-primary" th:text="#{clients.manage}">Manage Clients</a>
-    <a th:href="@{/clients/list}" class="btn btn-primary" th:text="#{clients.list}">View Client List</a>
   </div>
 
   <div class="button-group" sec:authorize="hasRole('CLIENT')">
@@ -148,8 +166,16 @@
     <table class="table table-striped">
       <thead>
       <tr>
-        <th th:text="#{table.name}">Name</th>
-        <th th:text="#{table.author}">Author</th>
+        <th>
+          <a th:with="newDirection=${sortField == 'name' and sortDirection == 'asc' ? 'desc' : 'asc'}"
+             th:href="@{/books(page=${currentPage}, size=${pageSize}, sort='name,' + ${newDirection}, search=${search})}"
+             th:text="#{table.name}">Name</a>
+        </th>
+        <th>
+          <a th:with="newDirection=${sortField == 'author' and sortDirection == 'asc' ? 'desc' : 'asc'}"
+             th:href="@{/books(page=${currentPage}, size=${pageSize}, sort='author,' + ${newDirection}, search=${search})}"
+             th:text="#{table.author}">Author</a>
+        </th>
         <th sec:authorize="hasRole('CLIENT')" th:text="#{table.actions}">Actions</th>
       </tr>
       </thead>
@@ -169,6 +195,20 @@
       </tbody>
     </table>
   </div>
+  <!-- Пагинация -->
+  <nav th:if="${totalPages > 1}" aria-label="Page navigation">
+    <ul class="pagination">
+      <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+        <a class="page-link" th:href="@{/books(page=${currentPage - 1}, size=${pageSize}, sort=${sortField + ',' + sortDirection}, search=${search})}" th:text="#{pagination.previous}">Previous</a>
+      </li>
+      <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i ? 'active' : ''}">
+        <a class="page-link" th:href="@{/books(page=${i}, size=${pageSize}, sort=${sortField + ',' + sortDirection}, search=${search})}" th:text="${i + 1}"></a>
+      </li>
+      <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+        <a class="page-link" th:href="@{/books(page=${currentPage + 1}, size=${pageSize}, sort=${sortField + ',' + sortDirection}, search=${search})}" th:text="#{pagination.next}">Next</a>
+      </li>
+    </ul>
+  </nav>
 
   <div class="nav-links">
     <a th:href="@{/logout}" class="logout-link" th:text="#{logout}">Logout</a>

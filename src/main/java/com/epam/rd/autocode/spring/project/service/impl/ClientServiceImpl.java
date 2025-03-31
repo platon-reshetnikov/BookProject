@@ -10,6 +10,8 @@ import com.epam.rd.autocode.spring.project.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -28,11 +30,14 @@ public class ClientServiceImpl implements ClientService {
     private final Map<String, List<BookItemDTO>> clientBaskets = new HashMap<>();
 
     @Override
-    public List<ClientDTO> getAllClients() {
-        List<Client> clients = clientRepository.findAll();
-        return clients.stream()
-                .map(clientMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<ClientDTO> getAllClients(Pageable pageable, String search) {
+        Page<Client> clients;
+        if (search != null && !search.isEmpty()) {
+            clients = clientRepository.findByEmailContainingOrNameContaining(search, search, pageable);
+        } else {
+            clients = clientRepository.findAll(pageable);
+        }
+        return clients.map(clientMapper::toDTO);
     }
 
     @Override

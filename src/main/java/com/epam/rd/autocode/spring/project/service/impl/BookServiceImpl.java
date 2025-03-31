@@ -9,6 +9,8 @@ import com.epam.rd.autocode.spring.project.repo.BookRepository;
 import com.epam.rd.autocode.spring.project.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,11 +24,14 @@ public class BookServiceImpl implements BookService {
     private final BookMapper bookMapper;
 
     @Override
-    public List<BookDTO> getAllBooks() {
-        List<Book> books = bookRepository.findAll();
-        return books.stream()
-                .map(bookMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<BookDTO> getAllBooks(Pageable pageable, String search) {
+        Page<Book> books;
+        if (search != null && !search.isEmpty()) {
+            books = bookRepository.findByNameContaining(search, pageable);
+        } else {
+            books = bookRepository.findAll(pageable);
+        }
+        return books.map(bookMapper::toDTO);
     }
 
     @Override

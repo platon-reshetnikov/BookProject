@@ -294,10 +294,8 @@ public class OrderServiceImplTest {
 
     @Test
     void calculateOrderPrice_NullOrder_SetsPriceToZero() {
-        // Act
         OrderDTO result = orderService.calculateOrderPrice(null);
 
-        // Assert
         assertNotNull(result);
         assertEquals(BigDecimal.ZERO, result.getPrice());
         verify(bookPriceService, never()).getBookPrice(anyString());

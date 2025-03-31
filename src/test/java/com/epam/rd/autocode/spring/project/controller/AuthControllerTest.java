@@ -123,37 +123,4 @@ public class AuthControllerTest {
         verify(userService, times(1)).addEmployee(employeeDTO);
     }
 
-//    @Test
-//    void registerUser_InvalidUserType_ShouldReturnError() throws Exception {
-//        mockMvc.perform(MockMvcRequestBuilders.post("/register")
-//                        .param("userType", "invalid")
-//                        .flashAttr("userWrapper", userWrapper))
-//                .andExpect(MockMvcResultMatchers.status().isOk())
-//                .andExpect(MockMvcResultMatchers.view().name("register"))
-//                .andExpect(MockMvcResultMatchers.model().attribute("submitted", true))
-//                .andExpect(MockMvcResultMatchers.model().attributeExists("error"));
-//
-//        verify(userService, never()).addClient(any());
-//        verify(userService, never()).addEmployee(any());
-//    }
-
-//    @Test
-//    void registerClient_InvalidData_ShouldReturnValidationErrors() throws Exception {
-//        ConstraintViolation<ClientDTO> violation = mock(ConstraintViolation.class);
-//        Path propertyPath = mock(Path.class);
-//        when(propertyPath.toString()).thenReturn("email");
-//        when(violation.getPropertyPath()).thenReturn(propertyPath);
-//        when(violation.getMessage()).thenReturn("Invalid email");
-//
-//        when(validator.validate(any(ClientDTO.class), eq(ClientValidationGroup.class)))
-//                .thenReturn(Set.of(violation));
-//
-//        mockMvc.perform(MockMvcRequestBuilders.post("/register")
-//                        .param("userType", "client")
-//                        .flashAttr("userWrapper", userWrapper))
-//                .andExpect(MockMvcResultMatchers.status().isOk())
-//                .andExpect(MockMvcResultMatchers.view().name("register"))
-//                .andExpect(MockMvcResultMatchers.model().attribute("submitted", true))
-//                .andExpect(MockMvcResultMatchers.model().attributeHasFieldErrors("userWrapper", "clientDTO.email"));
-//    }
 }
