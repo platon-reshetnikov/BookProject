@@ -1,12 +1,16 @@
 package com.epam.rd.autocode.spring.project.controller;
 
+import com.epam.rd.autocode.spring.project.conf.SecurityConfigTestJWT;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -22,7 +26,12 @@ import static org.mockito.Mockito.when;
 @WebMvcTest(HomeController.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
+@Import(SecurityConfigTestJWT.class)
+
 public class HomeControllerTest {
+    @Qualifier("userServiceImpl")
+    private UserDetailsService userDetailsService;
+
     @Autowired
     private MockMvc mockMvc;
 
