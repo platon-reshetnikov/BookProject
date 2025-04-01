@@ -7,6 +7,8 @@ import com.epam.rd.autocode.spring.project.mapper.UserWrapper;
 import com.epam.rd.autocode.spring.project.service.UserService;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
@@ -23,6 +25,7 @@ import java.util.Set;
 @Controller
 @RequestMapping("/register")
 public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     private final UserService userService;
     @Autowired
@@ -54,11 +57,12 @@ public class AuthController {
             BindingResult bindingResult,
             @RequestParam(name = "lang", required = false) String lang,
             Model model) {
-        System.out.println("Обрабатываем регистрацию для типа пользователя: " + userType);
+        logger.info("Processing registration for user type: {}", userType);
+
         if (lang != null && !lang.isBlank()) {
-            System.out.println("Переключение локали на: " + lang + " (из POST /register)");
+            logger.debug("Switching locale to: {} (from POST /register)", lang);
         } else {
-            System.out.println("Использована локаль по умолчанию на POST /register: " + Locale.getDefault());
+            logger.debug("Using default locale for POST /register: {}", Locale.getDefault());
         }
 
         // Устанавливаем флаг submitted
@@ -82,7 +86,7 @@ public class AuthController {
         }
 
         if (bindingResult.hasErrors()) {
-            System.out.println("Ошибки валидации: " + bindingResult.getAllErrors());
+            logger.warn("Validation errors occurred: {}", bindingResult.getAllErrors());
             return "register";
         }
 
@@ -93,35 +97,35 @@ public class AuthController {
 
         if ("client".equals(userType)) {
             ClientDTO clientDTO = userWrapper.getClientDTO();
-            System.out.println("Получен ClientDTO: " + clientDTO);
+            logger.debug("Received ClientDTO: {}", clientDTO);
             try {
                 userService.addClient(clientDTO);
-                System.out.println("Регистрация клиента прошла успешно");
+                logger.info("Client registration successful");
                 model.addAttribute("successMessage", messageSource.getMessage("register.client.success", null, locale));
                 return "register";
             } catch (DuplicateResourceException e) {
-                System.out.println("Регистрация клиента провалилась из-за дубликата: " + e.getMessage());
+                logger.warn("Client registration failed due to duplicate: {}", e.getMessage());
                 model.addAttribute("error", messageSource.getMessage("register.duplicate.error", new Object[]{clientDTO.getEmail()}, locale));
                 return "register";
             } catch (RuntimeException e) {
-                System.out.println("Регистрация клиента провалилась: " + e.getMessage());
+                logger.error("Client registration failed: {}", e.getMessage());
                 model.addAttribute("error", messageSource.getMessage("register.error", new Object[]{e.getMessage()}, locale));
                 return "register";
             }
         } else if ("employee".equals(userType)) {
             EmployeeDTO employeeDTO = userWrapper.getEmployeeDTO();
-            System.out.println("Получен EmployeeDTO: " + employeeDTO);
+            logger.debug("Received EmployeeDTO: {}", employeeDTO);
             try {
                 userService.addEmployee(employeeDTO);
-                System.out.println("Регистрация сотрудника прошла успешно");
+                logger.info("Employee registration successful");
                 model.addAttribute("successMessage", messageSource.getMessage("register.employee.success", null, locale));
                 return "register";
             } catch (DuplicateResourceException e) {
-                System.out.println("Регистрация сотрудника провалилась из-за дубликата: " + e.getMessage());
+                logger.warn("Employee registration failed due to duplicate: {}", e.getMessage());
                 model.addAttribute("error", messageSource.getMessage("register.duplicate.error", new Object[]{employeeDTO.getEmail()}, locale));
                 return "register";
             } catch (RuntimeException e) {
-                System.out.println("Регистрация сотрудника провалилась: " + e.getMessage());
+                logger.error("Employee registration failed: {}", e.getMessage());
                 model.addAttribute("error", messageSource.getMessage("register.error", new Object[]{e.getMessage()}, locale));
                 return "register";
             }

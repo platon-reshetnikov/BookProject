@@ -57,26 +57,27 @@ public class ClientController {
                                 @RequestParam(name = "sort", defaultValue = "email,asc") String sort,
                                 @RequestParam(name = "search", required = false) String search,
                                 @RequestParam(name = "lang", required = false) String lang) {
-        logger.info("Employee accessing all clients");
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
+
+        logger.info("Retrieving clients list - User: {}, Roles: {}, Page: {}, Size: {}, Sort: {}, Search: {}",
+                username, roles, page, size, sort, search);
+
         if (lang != null && !lang.isBlank()) {
-            logger.info("Переключение локали на: {} (из /clients/manage)", lang);
+            logger.debug("Switching locale to: {}", lang);
         } else {
-            logger.info("Использована локаль по умолчанию на /clients/manage: {}", Locale.getDefault());
+            logger.debug("Using default locale: {}", Locale.getDefault());
         }
 
-        // Парсим параметры сортировки
         String[] sortParams = sort.split(",");
         String sortField = sortParams[0];
         Sort.Direction sortDirection = Sort.Direction.fromString(sortParams[1]);
         Sort sortOrder = Sort.by(sortDirection, sortField);
-
-        // Создаем объект Pageable
         Pageable pageable = PageRequest.of(page, size, sortOrder);
 
-        // Получаем данные из сервиса
         Page<ClientDTO> clientPage = clientService.getAllClients(pageable, search);
+        logger.debug("Retrieved {} clients out of {} total", clientPage.getNumberOfElements(), clientPage.getTotalElements());
 
-        // Добавляем данные в модель
         model.addAttribute("clients", clientPage.getContent());
         model.addAttribute("currentPage", clientPage.getNumber());
         model.addAttribute("totalPages", clientPage.getTotalPages());
@@ -97,19 +98,27 @@ public class ClientController {
 
     @PostMapping("/block/{email}")
     @PreAuthorize("hasRole('EMPLOYEE')")
-    public String blockClient(@PathVariable String email, Model model, @RequestParam(name = "lang", required = false) String lang) {
-        logger.info("Employee blocking client: {}", email);
+    public String blockClient(@PathVariable String email, Model model,
+                              @RequestParam(name = "lang", required = false) String lang) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
+
+        logger.info("Blocking client - User: {}, Roles: {}, Client email: {}", username, roles, email);
+
         if (lang != null && !lang.isBlank()) {
-            logger.info("Переключение локали на: {} (из POST /clients/block/{})", lang, email);
+            logger.debug("Switching locale to: {}", lang);
         } else {
-            logger.info("Использована локаль по умолчанию на POST /clients/block/{}: {}", email, Locale.getDefault());
+            logger.debug("Using default locale: {}", Locale.getDefault());
         }
+
         try {
             clientService.blockClient(email);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("client.blocked", new Object[]{email}, locale);
             model.addAttribute("successMessage", message);
+            logger.info("Client blocked successfully: {}", email);
         } catch (NotFoundException e) {
+            logger.warn("Failed to block client - not found: {}", email);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("client.not.found", new Object[]{email}, locale);
             model.addAttribute("errorMessage", message);
@@ -119,19 +128,27 @@ public class ClientController {
 
     @PostMapping("/unblock/{email}")
     @PreAuthorize("hasRole('EMPLOYEE')")
-    public String unblockClient(@PathVariable String email, Model model, @RequestParam(name = "lang", required = false) String lang) {
-        logger.info("Employee unblocking client: {}", email);
+    public String unblockClient(@PathVariable String email, Model model,
+                                @RequestParam(name = "lang", required = false) String lang) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
+
+        logger.info("Unblocking client - User: {}, Roles: {}, Client email: {}", username, roles, email);
+
         if (lang != null && !lang.isBlank()) {
-            logger.info("Переключение локали на: {} (из POST /clients/unblock/{})", lang, email);
+            logger.debug("Switching locale to: {}", lang);
         } else {
-            logger.info("Использована локаль по умолчанию на POST /clients/unblock/{}: {}", email, Locale.getDefault());
+            logger.debug("Using default locale: {}", Locale.getDefault());
         }
+
         try {
             clientService.unblockClient(email);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("client.unblocked", new Object[]{email}, locale);
             model.addAttribute("successMessage", message);
+            logger.info("Client unblocked successfully: {}", email);
         } catch (NotFoundException e) {
+            logger.warn("Failed to unblock client - not found: {}", email);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("client.not.found", new Object[]{email}, locale);
             model.addAttribute("errorMessage", message);
@@ -141,24 +158,33 @@ public class ClientController {
 
     @PostMapping("/basket/add/{bookName}")
     @PreAuthorize("hasRole('CLIENT')")
-    public String addBookToBasket(@PathVariable String bookName, @RequestParam(defaultValue = "1") int quantity, Model model, @RequestParam(name = "lang", required = false) String lang) {
+    public String addBookToBasket(@PathVariable String bookName,
+                                  @RequestParam(defaultValue = "1") int quantity,
+                                  Model model,
+                                  @RequestParam(name = "lang", required = false) String lang) {
         String clientEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        logger.info("Client {} adding book {} to basket", clientEmail, bookName);
+
+        logger.info("Adding book to basket - Client: {}, Book: {}, Quantity: {}", clientEmail, bookName, quantity);
+
         if (lang != null && !lang.isBlank()) {
-            logger.info("Переключение локали на: {} (из POST /clients/basket/add/{})", lang, bookName);
+            logger.debug("Switching locale to: {}", lang);
         } else {
-            logger.info("Использована локаль по умолчанию на POST /clients/basket/add/{}: {}", bookName, Locale.getDefault());
+            logger.debug("Using default locale: {}", Locale.getDefault());
         }
+
         try {
             clientService.addBookToBasket(clientEmail, bookName, quantity);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("basket.added", new Object[]{bookName}, locale);
             model.addAttribute("successMessage", message);
+            logger.info("Book added to basket successfully: {}", bookName);
         } catch (NotFoundException e) {
+            logger.warn("Failed to add book to basket - client not found: {}", clientEmail);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("client.not.found", new Object[]{clientEmail}, locale);
             model.addAttribute("errorMessage", message);
         } catch (IllegalArgumentException e) {
+            logger.warn("Failed to add book to basket: {}", e.getMessage());
             model.addAttribute("errorMessage", e.getMessage());
         }
         return "redirect:/books";
@@ -168,13 +194,17 @@ public class ClientController {
     @PreAuthorize("hasRole('CLIENT')")
     public String viewBasket(Model model, @RequestParam(name = "lang", required = false) String lang) {
         String clientEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        logger.info("Client {} viewing basket", clientEmail);
+
+        logger.info("Viewing basket - Client: {}", clientEmail);
+
         if (lang != null && !lang.isBlank()) {
-            logger.info("Переключение локали на: {} (из /clients/basket)", lang);
+            logger.debug("Switching locale to: {}", lang);
         } else {
-            logger.info("Использована локаль по умолчанию на /clients/basket: {}", Locale.getDefault());
+            logger.debug("Using default locale: {}", Locale.getDefault());
         }
+
         List<BookItemDTO> basket = clientService.getBasket(clientEmail);
+        logger.debug("Basket contains {} items", basket.size());
         model.addAttribute("basket", basket);
         return "basket";
     }
@@ -183,18 +213,23 @@ public class ClientController {
     @PreAuthorize("hasRole('CLIENT')")
     public String clearBasket(Model model, @RequestParam(name = "lang", required = false) String lang) {
         String clientEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        logger.info("Client {} clearing their basket", clientEmail);
+
+        logger.info("Clearing basket - Client: {}", clientEmail);
+
         if (lang != null && !lang.isBlank()) {
-            logger.info("Переключение локали на: {} (из POST /clients/basket/clear)", lang);
+            logger.debug("Switching locale to: {}", lang);
         } else {
-            logger.info("Использована локаль по умолчанию на POST /clients/basket/clear: {}", Locale.getDefault());
+            logger.debug("Using default locale: {}", Locale.getDefault());
         }
+
         try {
             clientService.clearBasket(clientEmail);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("basket.cleared", null, locale);
             model.addAttribute("successMessage", message);
+            logger.info("Basket cleared successfully for client: {}", clientEmail);
         } catch (NotFoundException e) {
+            logger.warn("Failed to clear basket - client not found: {}", clientEmail);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("client.not.found", new Object[]{clientEmail}, locale);
             model.addAttribute("errorMessage", message);
@@ -204,19 +239,26 @@ public class ClientController {
 
     @PostMapping("/delete")
     @PreAuthorize("hasRole('CLIENT')")
-    public String deleteAccount(HttpServletRequest request, HttpServletResponse response, Model model, @RequestParam(name = "lang", required = false) String lang) {
+    public String deleteAccount(HttpServletRequest request, HttpServletResponse response,
+                                Model model, @RequestParam(name = "lang", required = false) String lang) {
         String clientEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        logger.info("Client {} deleting their account", clientEmail);
+
+        logger.info("Deleting account - Client: {}", clientEmail);
+
         if (lang != null && !lang.isBlank()) {
-            logger.info("Переключение локали на: {} (из POST /clients/delete)", lang);
+            logger.debug("Switching locale to: {}", lang);
         } else {
-            logger.info("Использована локаль по умолчанию на POST /clients/delete: {}", Locale.getDefault());
+            logger.debug("Using default locale: {}", Locale.getDefault());
         }
+
         try {
             clientService.deleteClientByEmail(clientEmail);
-            new SecurityContextLogoutHandler().logout(request, response, SecurityContextHolder.getContext().getAuthentication());
+            logger.info("Account deleted successfully: {}", clientEmail);
+            new SecurityContextLogoutHandler().logout(request, response,
+                    SecurityContextHolder.getContext().getAuthentication());
             return "redirect:/login?deleted";
         } catch (NotFoundException e) {
+            logger.warn("Failed to delete account - client not found: {}", clientEmail);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("client.not.found", new Object[]{clientEmail}, locale);
             model.addAttribute("errorMessage", message);
@@ -229,15 +271,18 @@ public class ClientController {
     public String submitOrder(Model model, @RequestParam(name = "lang", required = false) String lang) {
         String clientEmail = SecurityContextHolder.getContext().getAuthentication().getName();
 
+        logger.info("Submitting order - Client: {}", clientEmail);
+
         if (lang != null && !lang.isBlank()) {
-            logger.info("Переключение локали на: {} (из POST /clients/basket/submit)", lang);
+            logger.debug("Switching locale to: {}", lang);
         } else {
-            logger.info("Использована локаль по умолчанию на POST /clients/basket/submit: {}", Locale.getDefault());
+            logger.debug("Using default locale: {}", Locale.getDefault());
         }
 
         try {
             clientService.getClientByEmail(clientEmail);
         } catch (NotFoundException e) {
+            logger.warn("Client not found for order submission: {}", clientEmail);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("client.not.exists", null, locale);
             model.addAttribute("errorMessage", message);
@@ -246,6 +291,7 @@ public class ClientController {
 
         List<BookItemDTO> basket = clientService.getBasket(clientEmail);
         if (basket == null || basket.isEmpty()) {
+            logger.warn("Attempt to submit empty basket by client: {}", clientEmail);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("basket.empty", null, locale);
             model.addAttribute("errorMessage", message);
@@ -255,12 +301,14 @@ public class ClientController {
         try {
             List<Employee> employees = employeeRepository.findAll();
             if (employees.isEmpty()) {
+                logger.warn("No employees available to process order for client: {}", clientEmail);
                 Locale locale = LocaleContextHolder.getLocale();
                 String message = messageSource.getMessage("order.no.employees", null, locale);
                 model.addAttribute("errorMessage", message);
                 return "basket";
             }
             String employeeEmail = employees.get(new Random().nextInt(employees.size())).getEmail();
+            logger.debug("Assigned employee for order: {}", employeeEmail);
 
             OrderDTO orderDTO = new OrderDTO();
             orderDTO.setClientEmail(clientEmail);
@@ -270,14 +318,17 @@ public class ClientController {
             orderDTO.setPrice(BigDecimal.ZERO);
 
             orderDTO = orderService.calculateOrderPrice(orderDTO);
+            logger.debug("Calculated order price: {}", orderDTO.getPrice());
 
             orderService.addOrder(orderDTO);
             clientService.clearBasket(clientEmail);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("order.submitted", new Object[]{employeeEmail}, locale);
             model.addAttribute("successMessage", message);
+            logger.info("Order submitted successfully for client: {}, assigned to employee: {}", clientEmail, employeeEmail);
             return "redirect:/clients/basket";
         } catch (Exception e) {
+            logger.error("Error submitting order for client: {} - {}", clientEmail, e.getMessage());
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("order.error", new Object[]{e.getMessage()}, locale);
             model.addAttribute("errorMessage", message);

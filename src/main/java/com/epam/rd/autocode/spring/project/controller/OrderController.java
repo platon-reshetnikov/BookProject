@@ -41,17 +41,24 @@ public class OrderController {
     @GetMapping("/client/{clientEmail}")
     public String getOrdersByClient(@PathVariable String clientEmail, Model model,
                                     @RequestParam(name = "lang", required = false) String lang) {
-        logger.info("Fetching orders for client: {}", clientEmail);
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
+
+        logger.info("Retrieving orders - User: {}, Roles: {}, Client email: {}", username, roles, clientEmail);
+
         if (lang != null && !lang.isBlank()) {
-            logger.info("Переключение локали на: {} (из /orders/client/{})", lang, clientEmail);
+            logger.debug("Switching locale to: {}", lang);
         } else {
-            logger.info("Использована локаль по умолчанию на /orders/client/{}: {}", clientEmail, Locale.getDefault());
+            logger.debug("Using default locale: {}", Locale.getDefault());
         }
+
         try {
             List<OrderDTO> orders = orderService.getOrdersByClient(clientEmail);
+            logger.debug("Retrieved {} orders for client: {}", orders.size(), clientEmail);
             model.addAttribute("orders", orders);
             model.addAttribute("clientEmail", clientEmail);
         } catch (NotFoundException e) {
+            logger.warn("Failed to retrieve orders - client not found: {}", clientEmail);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("client.not.found", new Object[]{clientEmail}, locale);
             model.addAttribute("errorMessage", message);
@@ -63,12 +70,18 @@ public class OrderController {
     @PreAuthorize("hasRole('EMPLOYEE')")
     public String getAllOrders(Model model, @RequestParam(name = "lang", required = false) String lang) {
         String employeeEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
+
+        logger.info("Retrieving all orders - Employee: {}, Roles: {}", employeeEmail, roles);
+
         if (lang != null && !lang.isBlank()) {
-            logger.info("Переключение локали на: {} (из /orders)", lang);
+            logger.debug("Switching locale to: {}", lang);
         } else {
-            logger.info("Использована локаль по умолчанию на /orders: {}", Locale.getDefault());
+            logger.debug("Using default locale: {}", Locale.getDefault());
         }
+
         List<OrderDTO> orders = orderService.getAllOrders();
+        logger.debug("Retrieved {} orders total", orders.size());
 
         List<OrderDTO> ordersWithPrices = orders.stream()
                 .peek(order -> {
@@ -78,18 +91,29 @@ public class OrderController {
                                 .map(item -> {
                                     try {
                                         BigDecimal bookPrice = bookPriceService.getBookPrice(item.getBookName().trim());
-                                        return bookPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
+                                        BigDecimal itemTotal = bookPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
+                                        logger.debug("Book: {}, Price: {}, Quantity: {}, Item Total: {}",
+                                                item.getBookName(), bookPrice, item.getQuantity(), itemTotal);
+                                        return itemTotal;
                                     } catch (Exception e) {
+                                        logger.warn("Failed to get price for book: {} - {}", item.getBookName(), e.getMessage());
                                         return BigDecimal.ZERO;
                                     }
                                 })
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
                         order.setPrice(totalPrice);
+                        logger.debug("Calculated total price for order (Client: {}, Date: {}): {}",
+                                order.getClientEmail(), order.getOrderDate(), totalPrice);
+                    } else {
+                        logger.debug("No book items in order (Client: {}, Date: {})",
+                                order.getClientEmail(), order.getOrderDate());
                     }
                 })
                 .collect(Collectors.toList());
 
         List<Employee> employees = orderService.getAllEmployees();
+        logger.debug("Retrieved {} employees", employees.size());
+
         model.addAttribute("orders", ordersWithPrices);
         model.addAttribute("employees", employees);
         model.addAttribute("bookPriceService", bookPriceService);
@@ -104,18 +128,26 @@ public class OrderController {
                                Model model,
                                RedirectAttributes redirectAttributes,
                                @RequestParam(name = "lang", required = false) String lang) {
-        logger.info("Employee {} confirming order for client {} at {}", employeeEmail, clientEmail, orderDate);
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
+
+        logger.info("Confirming order - Employee: {}, Roles: {}, Client: {}, Order Date: {}, Assigned Employee: {}",
+                username, roles, clientEmail, orderDate, employeeEmail);
+
         if (lang != null && !lang.isBlank()) {
-            logger.info("Переключение локали на: {} (из POST /orders/confirm)", lang);
+            logger.debug("Switching locale to: {}", lang);
         } else {
-            logger.info("Использована локаль по умолчанию на POST /orders/confirm: {}", Locale.getDefault());
+            logger.debug("Using default locale: {}", Locale.getDefault());
         }
+
         try {
             orderService.confirmOrder(clientEmail, orderDate, employeeEmail);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("order.confirmed", null, locale);
             redirectAttributes.addFlashAttribute("successMessage", message);
+            logger.info("Order confirmed successfully for client: {} at {}", clientEmail, orderDate);
         } catch (NotFoundException e) {
+            logger.warn("Failed to confirm order - not found for client: {} at {}", clientEmail, orderDate);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("order.not.found", new Object[]{clientEmail, orderDate}, locale);
             redirectAttributes.addFlashAttribute("errorMessage", message);

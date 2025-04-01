@@ -38,109 +38,171 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<OrderDTO> getOrdersByClient(String clientEmail) {
+        logger.info("Retrieving orders for client: {}", clientEmail);
+
         clientRepository.findByEmail(clientEmail)
-                .orElseThrow(() -> new NotFoundException("Client not found with email: " + clientEmail));
+                .orElseThrow(() -> {
+                    logger.warn("Client not found with email: {}", clientEmail);
+                    return new NotFoundException("Client not found with email: " + clientEmail);
+                });
+
         List<Order> orders = orderRepository.findByClientEmail(clientEmail);
-        return orders.stream()
+        List<OrderDTO> orderDTOs = orders.stream()
                 .map(orderMapper::toDTO)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+
+        logger.debug("Retrieved {} orders for client: {}", orderDTOs.size(), clientEmail);
+        return orderDTOs;
     }
 
     @Override
     public List<OrderDTO> getOrdersByEmployee(String employeeEmail) {
+        logger.info("Retrieving orders for employee: {}", employeeEmail);
+
         employeeRepository.findByEmail(employeeEmail)
-                .orElseThrow(() -> new NotFoundException("Employee not found with email: " + employeeEmail));
+                .orElseThrow(() -> {
+                    logger.warn("Employee not found with email: {}", employeeEmail);
+                    return new NotFoundException("Employee not found with email: " + employeeEmail);
+                });
+
         List<Order> orders = orderRepository.findByEmployeeEmail(employeeEmail);
-        return orders.stream()
+        List<OrderDTO> orderDTOs = orders.stream()
                 .map(orderMapper::toDTO)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+
+        logger.debug("Retrieved {} orders for employee: {}", orderDTOs.size(), employeeEmail);
+        return orderDTOs;
     }
 
     @Override
     public OrderDTO addOrder(@Valid OrderDTO orderDTO) {
+        logger.info("Adding new order: {}", orderDTO);
+
         Client client = clientRepository.findByEmail(orderDTO.getClientEmail())
-                .orElseThrow(() -> new NotFoundException("Client not found with email: " + orderDTO.getClientEmail()));
+                .orElseThrow(() -> {
+                    logger.warn("Client not found with email: {}", orderDTO.getClientEmail());
+                    return new NotFoundException("Client not found with email: " + orderDTO.getClientEmail());
+                });
 
         Employee employee = employeeRepository.findByEmail(orderDTO.getEmployeeEmail())
-                .orElseThrow(() -> new NotFoundException("Employee not found with email: " + orderDTO.getEmployeeEmail()));
+                .orElseThrow(() -> {
+                    logger.warn("Employee not found with email: {}", orderDTO.getEmployeeEmail());
+                    return new NotFoundException("Employee not found with email: " + orderDTO.getEmployeeEmail());
+                });
 
-        // Преобразуем OrderDTO в Order
         Order order = orderMapper.toEntity(orderDTO);
         order.setClient(client);
         order.setEmployee(employee);
 
-        // Устанавливаем связь между Order и BookItem
         if (order.getBookItems() != null) {
             for (BookItem bookItem : order.getBookItems()) {
                 if (bookItem.getBook() == null) {
+                    logger.error("Book is not set in BookItem: {}", bookItem);
                     throw new IllegalStateException("Book is not set in BookItem: " + bookItem);
                 }
                 String bookName = bookItem.getBook().getName();
                 if (bookName == null || bookName.trim().isEmpty()) {
+                    logger.warn("Book name is null or empty in BookItem: {}", bookItem);
                     throw new IllegalArgumentException("Book name cannot be null or empty in BookItem: " + bookItem);
                 }
                 Book book = bookRepository.findByName(bookName)
-                        .orElseThrow(() -> new NotFoundException("Book not found with name: " + bookName));
-                bookItem.setBook(book); // Устанавливаем книгу из базы данных
-                bookItem.setOrder(order); // Устанавливаем заказ
+                        .orElseThrow(() -> {
+                            logger.warn("Book not found with name: {}", bookName);
+                            return new NotFoundException("Book not found with name: " + bookName);
+                        });
+                bookItem.setBook(book);
+                bookItem.setOrder(order);
+                logger.debug("Linked book item - Book: {}, Quantity: {}", bookName, bookItem.getQuantity());
             }
         } else {
+            logger.warn("Order has no book items: {}", orderDTO);
             throw new IllegalArgumentException("Order must contain at least one book item");
         }
 
-        // Сохраняем заказ
         Order savedOrder = orderRepository.save(order);
-
-        // Возвращаем DTO
+        logger.info("Order added successfully - Client: {}, Date: {}", savedOrder.getClient().getEmail(), savedOrder.getOrderDate());
+        logger.debug("Saved order details: {}", savedOrder);
         return orderMapper.toDTO(savedOrder);
     }
 
     @Override
     public List<OrderDTO> getAllOrders() {
+        logger.info("Retrieving all orders");
+
         List<Order> orders = orderRepository.findAll();
-        return orders.stream()
+        List<OrderDTO> orderDTOs = orders.stream()
                 .map(order -> {
                     OrderDTO dto = orderMapper.toDTO(order);
                     if (dto.getOrderDate() == null) {
                         dto.setOrderDate(LocalDateTime.now());
+                        logger.debug("Set default order date to now for order: {}", dto);
                     }
                     if (dto.getClientEmail() == null && order.getClient() != null) {
                         dto.setClientEmail(order.getClient().getEmail());
+                        logger.debug("Set client email from entity: {}", dto.getClientEmail());
                     }
                     return dto;
                 })
                 .collect(Collectors.toList());
+
+        logger.debug("Retrieved {} orders total", orderDTOs.size());
+        return orderDTOs;
     }
 
     @Override
     public OrderDTO confirmOrder(String clientEmail, LocalDateTime orderDate, String employeeEmail) {
+        logger.info("Confirming and removing order - Client: {}, Date: {}, Employee: {}", clientEmail, orderDate, employeeEmail);
+
         Order order = orderRepository.findByClientEmailAndOrderDate(clientEmail, orderDate)
-                .orElseThrow(() -> new NotFoundException("Order not found for client " + clientEmail + " and date " + orderDate));
+                .orElseThrow(() -> {
+                    logger.warn("Order not found for client: {} at date: {}", clientEmail, orderDate);
+                    return new NotFoundException("Order not found for client " + clientEmail + " and date " + orderDate);
+                });
+
         Employee employee = employeeRepository.findByEmail(employeeEmail)
-                .orElseThrow(() -> new NotFoundException("Employee not found with email: " + employeeEmail));
-        order.setEmployee(employee);
-        Order savedOrder = orderRepository.save(order);
-        return orderMapper.toDTO(savedOrder);
+                .orElseThrow(() -> {
+                    logger.warn("Employee not found with email: {}", employeeEmail);
+                    return new NotFoundException("Employee not found with email: " + employeeEmail);
+                });
+
+        // Логируем данные заказа перед удалением
+        logger.debug("Order to be confirmed and removed: {}", order);
+
+        // Удаляем заказ вместо сохранения
+        orderRepository.delete(order);
+
+        // Создаем DTO для возврата (до удаления могли бы сохранить данные в переменную, но здесь просто возвращаем исходный DTO)
+        OrderDTO confirmedOrderDTO = orderMapper.toDTO(order);
+        confirmedOrderDTO.setEmployeeEmail(employeeEmail); // Устанавливаем сотрудника в DTO для возврата
+
+        logger.info("Order confirmed and removed successfully - Client: {}, Date: {}", clientEmail, orderDate);
+        return confirmedOrderDTO;
     }
 
     @Override
     public List<Employee> getAllEmployees() {
-        logger.debug("Fetching all employees");
+        logger.info("Retrieving all employees");
+
         List<Employee> employees = employeeRepository.findAll();
-        logger.debug("Found {} employees", employees.size());
+        logger.debug("Retrieved {} employees", employees.size());
         return employees;
     }
 
     @Override
     public OrderDTO calculateOrderPrice(OrderDTO orderDTO) {
+        logger.info("Calculating order price for: {}", orderDTO);
+
         if (orderDTO == null) {
+            logger.warn("OrderDTO is null, returning default order with zero price");
             OrderDTO newOrderDTO = new OrderDTO();
             newOrderDTO.setPrice(BigDecimal.ZERO);
             return newOrderDTO;
         }
+
         if (orderDTO.getBookItems() == null || orderDTO.getBookItems().isEmpty()) {
+            logger.debug("No book items in order, setting price to zero");
             orderDTO.setPrice(BigDecimal.ZERO);
             return orderDTO;
         }
@@ -149,14 +211,19 @@ public class OrderServiceImpl implements OrderService {
                 .map(item -> {
                     try {
                         BigDecimal bookPrice = bookPriceService.getBookPrice(item.getBookName().trim());
-                        return bookPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
+                        BigDecimal itemTotal = bookPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
+                        logger.debug("Book: {}, Price: {}, Quantity: {}, Item Total: {}",
+                                item.getBookName(), bookPrice, item.getQuantity(), itemTotal);
+                        return itemTotal;
                     } catch (Exception e) {
+                        logger.warn("Failed to get price for book: {} - {}", item.getBookName(), e.getMessage());
                         return BigDecimal.ZERO;
                     }
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         orderDTO.setPrice(totalPrice);
+        logger.info("Order price calculated: {}", totalPrice);
         return orderDTO;
     }
 }

@@ -31,82 +31,145 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Page<ClientDTO> getAllClients(Pageable pageable, String search) {
+        logger.info("Retrieving clients - Page: {}, Size: {}, Search: {}", pageable.getPageNumber(), pageable.getPageSize(), search);
+
         Page<Client> clients;
         if (search != null && !search.isEmpty()) {
+            logger.debug("Searching clients with email or name containing: {}", search);
             clients = clientRepository.findByEmailContainingOrNameContaining(search, search, pageable);
         } else {
+            logger.debug("Fetching all clients");
             clients = clientRepository.findAll(pageable);
         }
+
+        logger.debug("Retrieved {} clients out of {} total", clients.getNumberOfElements(), clients.getTotalElements());
         return clients.map(clientMapper::toDTO);
     }
 
     @Override
     public ClientDTO getClientByEmail(String email) {
+        logger.info("Retrieving client by email: {}", email);
+
         Client client = clientRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("Client not found with email: " + email));
+                .orElseThrow(() -> {
+                    logger.warn("Client not found with email: {}", email);
+                    return new NotFoundException("Client not found with email: " + email);
+                });
+
+        logger.debug("Client retrieved: {}", client);
         return clientMapper.toDTO(client);
     }
 
     @Override
     public void deleteClientByEmail(String email) {
+        logger.info("Deleting client by email: {}", email);
+
         Client client = clientRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("Client not found with email: " + email));
+                .orElseThrow(() -> {
+                    logger.warn("Client not found for deletion with email: {}", email);
+                    return new NotFoundException("Client not found with email: " + email);
+                });
+
         clientRepository.delete(client);
+        clientBlockedStatus.remove(email);
+        clientBaskets.remove(email);
+        logger.info("Client deleted successfully: {}", email);
     }
 
     @Override
     public void blockClient(String email) {
+        logger.info("Blocking client: {}", email);
+
         Client client = clientRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("Client not found with email: " + email));
+                .orElseThrow(() -> {
+                    logger.warn("Client not found for blocking with email: {}", email);
+                    return new NotFoundException("Client not found with email: " + email);
+                });
+
         clientBlockedStatus.put(email, true);
-        logger.info("Client blocked: {}", email);
+        logger.info("Client blocked successfully: {}", email);
     }
 
     @Override
     public void unblockClient(String email) {
+        logger.info("Unblocking client: {}", email);
+
         Client client = clientRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("Client not found with email: " + email));
+                .orElseThrow(() -> {
+                    logger.warn("Client not found for unblocking with email: {}", email);
+                    return new NotFoundException("Client not found with email: " + email);
+                });
+
         clientBlockedStatus.put(email, false);
-        logger.info("Client unblocked: {}", email);
+        logger.info("Client unblocked successfully: {}", email);
     }
 
     @Override
     public boolean isClientBlocked(String email) {
-        return clientBlockedStatus.getOrDefault(email, false);
+        boolean isBlocked = clientBlockedStatus.getOrDefault(email, false);
+        logger.debug("Checking if client is blocked - Email: {}, Status: {}", email, isBlocked);
+        return isBlocked;
     }
 
     @Override
     public void addBookToBasket(String clientEmail, String bookName, int quantity) {
+        logger.info("Adding book to basket - Client: {}, Book: {}, Quantity: {}", clientEmail, bookName, quantity);
+
         if (quantity <= 0) {
+            logger.warn("Invalid quantity provided: {}", quantity);
             throw new IllegalArgumentException("Quantity must be positive");
         }
+
         Client client = clientRepository.findByEmail(clientEmail)
-                .orElseThrow(() -> new NotFoundException("Client not found with email: " + clientEmail));
+                .orElseThrow(() -> {
+                    logger.warn("Client not found for adding book to basket: {}", clientEmail);
+                    return new NotFoundException("Client not found with email: " + clientEmail);
+                });
+
         List<BookItemDTO> basket = clientBaskets.getOrDefault(clientEmail, new ArrayList<>());
         Optional<BookItemDTO> existingItem = basket.stream()
                 .filter(item -> item.getBookName().equals(bookName))
                 .findFirst();
+
         if (existingItem.isPresent()) {
-            existingItem.get().setQuantity(existingItem.get().getQuantity() + quantity);
+            int newQuantity = existingItem.get().getQuantity() + quantity;
+            existingItem.get().setQuantity(newQuantity);
+            logger.debug("Updated existing book item quantity - Book: {}, New Quantity: {}", bookName, newQuantity);
         } else {
             basket.add(new BookItemDTO(bookName, quantity));
+            logger.debug("Added new book item to basket - Book: {}, Quantity: {}", bookName, quantity);
         }
+
         clientBaskets.put(clientEmail, basket);
-        logger.info("Book {} added to basket for client: {}", bookName, clientEmail);
+        logger.info("Book added to basket successfully - Client: {}, Book: {}", clientEmail, bookName);
     }
 
     @Override
     public List<BookItemDTO> getBasket(String clientEmail) {
+        logger.info("Retrieving basket for client: {}", clientEmail);
+
         Client client = clientRepository.findByEmail(clientEmail)
-                .orElseThrow(() -> new NotFoundException("Client not found with email: " + clientEmail));
-        return clientBaskets.getOrDefault(clientEmail, new ArrayList<>());
+                .orElseThrow(() -> {
+                    logger.warn("Client not found for retrieving basket: {}", clientEmail);
+                    return new NotFoundException("Client not found with email: " + clientEmail);
+                });
+
+        List<BookItemDTO> basket = clientBaskets.getOrDefault(clientEmail, new ArrayList<>());
+        logger.debug("Basket retrieved with {} items for client: {}", basket.size(), clientEmail);
+        return basket;
     }
 
     @Override
     public void clearBasket(String clientEmail) {
+        logger.info("Clearing basket for client: {}", clientEmail);
+
         Client client = clientRepository.findByEmail(clientEmail)
-                .orElseThrow(() -> new NotFoundException("Client not found with email: " + clientEmail));
+                .orElseThrow(() -> {
+                    logger.warn("Client not found for clearing basket: {}", clientEmail);
+                    return new NotFoundException("Client not found with email: " + clientEmail);
+                });
+
         clientBaskets.remove(clientEmail);
-        logger.info("Basket cleared for client: {}", clientEmail);
+        logger.info("Basket cleared successfully for client: {}", clientEmail);
     }
 }

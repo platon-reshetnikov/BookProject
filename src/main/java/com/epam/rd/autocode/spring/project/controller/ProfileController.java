@@ -41,19 +41,24 @@ public class ProfileController {
     public String viewProfile(Model model, @RequestParam(name = "lang", required = false) String lang) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        logger.info("Viewing profile for user: {}, Roles: {}", email, authentication.getAuthorities());
+        String roles = authentication.getAuthorities().toString();
+
+        logger.info("Viewing profile - User: {}, Roles: {}", email, roles);
+
         if (lang != null && !lang.isBlank()) {
-            logger.info("Переключение локали на: {} (из /profile)", lang);
+            logger.debug("Switching locale to: {}", lang);
         } else {
-            logger.info("Использована локаль по умолчанию на /profile: {}", Locale.getDefault());
+            logger.debug("Using default locale: {}", Locale.getDefault());
         }
 
         if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CLIENT"))) {
             Client client = userService.getClientByEmail(email);
+            logger.debug("Retrieved client data: {}", client);
             model.addAttribute("user", client);
             model.addAttribute("userType", "client");
         } else if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_EMPLOYEE"))) {
             Employee employee = userService.getEmployeeByEmail(email);
+            logger.debug("Retrieved employee data: {}", employee);
             model.addAttribute("user", employee);
             model.addAttribute("userType", "employee");
         }
@@ -64,11 +69,14 @@ public class ProfileController {
     public String editProfileForm(Model model, @RequestParam(name = "lang", required = false) String lang) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        logger.info("Editing profile form for user: {}, Roles: {}", email, authentication.getAuthorities());
+        String roles = authentication.getAuthorities().toString();
+
+        logger.info("Showing edit profile form - User: {}, Roles: {}", email, roles);
+
         if (lang != null && !lang.isBlank()) {
-            logger.info("Переключение локали на: {} (из /profile/edit)", lang);
+            logger.debug("Switching locale to: {}", lang);
         } else {
-            logger.info("Использована локаль по умолчанию на /profile/edit: {}", Locale.getDefault());
+            logger.debug("Using default locale: {}", Locale.getDefault());
         }
 
         UserWrapper userWrapper = new UserWrapper();
@@ -76,13 +84,13 @@ public class ProfileController {
         if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CLIENT"))) {
             Client client = userService.getClientByEmail(email);
             ClientDTO clientDTO = new ClientDTO(client.getEmail(), client.getPassword(), client.getName(), client.getBalance());
-            logger.info("ClientDTO created: {}", clientDTO);
+            logger.debug("Created ClientDTO for editing: {}", clientDTO);
             userWrapper.setClientDTO(clientDTO);
             model.addAttribute("userType", "client");
         } else if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_EMPLOYEE"))) {
             Employee employee = userService.getEmployeeByEmail(email);
             EmployeeDTO employeeDTO = new EmployeeDTO(employee.getEmail(), employee.getPassword(), employee.getName(), employee.getPhone(), employee.getBirthDate());
-            logger.info("EmployeeDTO created: {}", employeeDTO);
+            logger.debug("Created EmployeeDTO for editing: {}", employeeDTO);
             String formattedBirthDate = employee.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             model.addAttribute("formattedBirthDate", formattedBirthDate);
             userWrapper.setEmployeeDTO(employeeDTO);
@@ -102,21 +110,25 @@ public class ProfileController {
             @RequestParam(name = "lang", required = false) String lang) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
+            logger.warn("Unauthenticated attempt to edit profile");
             return "redirect:/login";
         }
 
         String email = authentication.getName();
-        logger.info("Saving profile for user: {}, userType: {}", email, userType);
+        String roles = authentication.getAuthorities().toString();
+
+        logger.info("Saving profile - User: {}, Roles: {}, UserType: {}", email, roles, userType);
+
         if (lang != null && !lang.isBlank()) {
-            logger.info("Переключение локали на: {} (из POST /profile/edit)", lang);
+            logger.debug("Switching locale to: {}", lang);
         } else {
-            logger.info("Использована локаль по умолчанию на POST /profile/edit: {}", Locale.getDefault());
+            logger.debug("Using default locale: {}", Locale.getDefault());
         }
 
         if ("client".equals(userType)) {
             ClientDTO clientDTO = userWrapper.getClientDTO();
             if (clientDTO == null) {
-                logger.error("clientDTO is null for user: {}", email);
+                logger.error("ClientDTO is null for user: {}", email);
                 Locale locale = LocaleContextHolder.getLocale();
                 String message = messageSource.getMessage("profile.client.missing", null, locale);
                 model.addAttribute("error", message);
@@ -124,7 +136,7 @@ public class ProfileController {
             }
 
             if (bindingResult.hasErrors()) {
-                logger.error("Client validation errors: {}", bindingResult.getAllErrors());
+                logger.warn("Validation errors for client profile: {}", bindingResult.getAllErrors());
                 model.addAttribute("userWrapper", userWrapper);
                 model.addAttribute("userType", userType);
                 return "edit-profile";
@@ -132,8 +144,9 @@ public class ProfileController {
 
             try {
                 userService.updateClient(email, clientDTO);
+                logger.info("Client profile updated successfully: {}", email);
             } catch (Exception e) {
-                logger.error("Error saving client profile: {}", e.getMessage());
+                logger.error("Failed to update client profile: {} - {}", email, e.getMessage());
                 Locale locale = LocaleContextHolder.getLocale();
                 String message = messageSource.getMessage("profile.save.error", new Object[]{e.getMessage()}, locale);
                 model.addAttribute("error", message);
@@ -142,7 +155,7 @@ public class ProfileController {
         } else if ("employee".equals(userType)) {
             EmployeeDTO employeeDTO = userWrapper.getEmployeeDTO();
             if (employeeDTO == null) {
-                logger.error("employeeDTO is null for user: {}", email);
+                logger.error("EmployeeDTO is null for user: {}", email);
                 Locale locale = LocaleContextHolder.getLocale();
                 String message = messageSource.getMessage("profile.employee.missing", null, locale);
                 model.addAttribute("error", message);
@@ -150,7 +163,7 @@ public class ProfileController {
             }
 
             if (bindingResult.hasErrors()) {
-                logger.error("Employee validation errors: {}", bindingResult.getAllErrors());
+                logger.warn("Validation errors for employee profile: {}", bindingResult.getAllErrors());
                 model.addAttribute("userWrapper", userWrapper);
                 model.addAttribute("userType", userType);
                 return "edit-profile";
@@ -158,15 +171,16 @@ public class ProfileController {
 
             try {
                 userService.updateEmployee(email, employeeDTO);
+                logger.info("Employee profile updated successfully: {}", email);
             } catch (Exception e) {
-                logger.error("Error saving employee profile: {}", e.getMessage());
+                logger.error("Failed to update employee profile: {} - {}", email, e.getMessage());
                 Locale locale = LocaleContextHolder.getLocale();
                 String message = messageSource.getMessage("profile.save.error", new Object[]{e.getMessage()}, locale);
                 model.addAttribute("error", message);
                 return "edit-profile";
             }
         } else {
-            logger.error("Invalid userType: {}", userType);
+            logger.error("Invalid userType received: {}", userType);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("profile.invalid.type", new Object[]{userType}, locale);
             model.addAttribute("error", message);

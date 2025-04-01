@@ -33,7 +33,8 @@ public class UserServiceImpl implements UserService {
     @Lazy
     private final ClientService clientService;
 
-    public UserServiceImpl(ClientRepository clientRepository, EmployeeRepository employeeRepository, PasswordEncoder passwordEncoder, ClientService clientService) {
+    public UserServiceImpl(ClientRepository clientRepository, EmployeeRepository employeeRepository,
+                           PasswordEncoder passwordEncoder, ClientService clientService) {
         this.clientRepository = clientRepository;
         this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
@@ -42,67 +43,99 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Client getClientByEmail(String email) {
-        return clientRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Client not found"));
+        logger.info("Retrieving client by email: {}", email);
+
+        Client client = clientRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    logger.warn("Client not found with email: {}", email);
+                    return new RuntimeException("Client not found");
+                });
+
+        logger.debug("Client retrieved: {}", client);
+        return client;
     }
 
     @Override
     public Employee getEmployeeByEmail(String email) {
-        return employeeRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Employee not found"));
+        logger.info("Retrieving employee by email: {}", email);
+
+        Employee employee = employeeRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    logger.warn("Employee not found with email: {}", email);
+                    return new RuntimeException("Employee not found");
+                });
+
+        logger.debug("Employee retrieved: {}", employee);
+        return employee;
     }
 
     @Override
     public void updateClient(String email, ClientDTO clientDTO) {
-        logger.info("Updating client with email: {}", email);
-        logger.info("ClientDTO data: {}", clientDTO);
+        logger.info("Updating client - Email: {}, ClientDTO: {}", email, clientDTO);
 
         Client client = clientRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Client not found"));
+                .orElseThrow(() -> {
+                    logger.warn("Client not found for update with email: {}", email);
+                    return new RuntimeException("Client not found");
+                });
+
+        logger.debug("Existing client before update: {}", client);
 
         if (clientDTO.getPassword() != null && !clientDTO.getPassword().isEmpty()) {
             String hashedPassword = passwordEncoder.encode(clientDTO.getPassword());
             client.setPassword(hashedPassword);
+            logger.debug("Updated client password (hashed): {}", hashedPassword);
         }
 
         client.setName(clientDTO.getName());
         client.setEmail(clientDTO.getEmail());
         client.setBalance(clientDTO.getBalance());
-        clientRepository.save(client);
 
-        logger.info("Client updated successfully: {}", client);
+        Client updatedClient = clientRepository.save(client);
+        logger.info("Client updated successfully: {}", updatedClient.getEmail());
+        logger.debug("Updated client details: {}", updatedClient);
     }
 
     @Override
     public void updateEmployee(String email, EmployeeDTO employeeDTO) {
-        logger.info("Updating employee with email: {}", email);
-        logger.info("EmployeeDTO data: {}", employeeDTO);
+        logger.info("Updating employee - Email: {}, EmployeeDTO: {}", email, employeeDTO);
 
         Employee employee = employeeRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() -> {
+                    logger.warn("Employee not found for update with email: {}", email);
+                    return new RuntimeException("Employee not found");
+                });
+
+        logger.debug("Existing employee before update: {}", employee);
 
         if (employeeDTO.getPassword() != null && !employeeDTO.getPassword().isEmpty()) {
             String hashedPassword = passwordEncoder.encode(employeeDTO.getPassword());
             employee.setPassword(hashedPassword);
+            logger.debug("Updated employee password (hashed): {}", hashedPassword);
         }
 
         employee.setName(employeeDTO.getName());
         employee.setEmail(employeeDTO.getEmail());
         employee.setPhone(employeeDTO.getPhone());
         employee.setBirthDate(employeeDTO.getBirthDate());
-        employeeRepository.save(employee);
 
-        logger.info("Employee updated successfully: {}", employee);
+        Employee updatedEmployee = employeeRepository.save(employee);
+        logger.info("Employee updated successfully: {}", updatedEmployee.getEmail());
+        logger.debug("Updated employee details: {}", updatedEmployee);
     }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        logger.info("Authenticating user with email: {}", email);
+        logger.info("Authenticating user - Email: {}", email);
+
         Client client = clientRepository.findByEmail(email).orElse(null);
         if (client != null) {
-            boolean isEnabled = !clientService.isClientBlocked(email); // Проверяем статус блокировки
+            boolean isEnabled = !clientService.isClientBlocked(email);
             UserDetails userDetails = new User(client.getEmail(), client.getPassword(),
                     isEnabled, true, true, true,
                     Collections.singletonList(new SimpleGrantedAuthority("ROLE_CLIENT")));
-            logger.info("Client authenticated: {}, Roles: [ROLE_CLIENT], Enabled: {}", email, isEnabled);
+            logger.info("Client authenticated - Email: {}, Enabled: {}, Roles: [ROLE_CLIENT]", email, isEnabled);
+            logger.debug("Client details: {}", client);
             return userDetails;
         }
 
@@ -111,46 +144,46 @@ public class UserServiceImpl implements UserService {
             UserDetails userDetails = new User(employee.getEmail(), employee.getPassword(),
                     true, true, true, true,
                     Collections.singletonList(new SimpleGrantedAuthority("ROLE_EMPLOYEE")));
-            logger.info("Employee authenticated: {}, Roles: [ROLE_EMPLOYEE]", email);
+            logger.info("Employee authenticated - Email: {}, Roles: [ROLE_EMPLOYEE]", email);
+            logger.debug("Employee details: {}", employee);
             return userDetails;
         }
 
-        logger.warn("User not found with email: {}", email);
+        logger.warn("Authentication failed - User not found with email: {}", email);
         throw new UsernameNotFoundException("User not found with email: " + email);
     }
 
     @Override
     public void addClient(ClientDTO clientDTO) {
-        logger.info("Registering new client with email: {}", clientDTO.getEmail());
+        logger.info("Registering new client - ClientDTO: {}", clientDTO);
 
         if (clientRepository.existsByEmail(clientDTO.getEmail())) {
-            logger.error("Client with email {} already exists", clientDTO.getEmail());
+            logger.warn("Client registration failed - Email already exists: {}", clientDTO.getEmail());
             throw new RuntimeException("Client with email " + clientDTO.getEmail() + " already exists");
         }
 
         String hashedPassword = passwordEncoder.encode(clientDTO.getPassword());
-
         Client client = new Client();
         client.setEmail(clientDTO.getEmail());
         client.setPassword(hashedPassword);
         client.setName(clientDTO.getName());
         client.setBalance(clientDTO.getBalance());
 
-        clientRepository.save(client);
-        logger.info("Client registered successfully: {}", client);
+        Client savedClient = clientRepository.save(client);
+        logger.info("Client registered successfully: {}", savedClient.getEmail());
+        logger.debug("Saved client details: {}", savedClient);
     }
 
     @Override
     public void addEmployee(EmployeeDTO employeeDTO) {
-        logger.info("Registering new employee with email: {}", employeeDTO.getEmail());
+        logger.info("Registering new employee - EmployeeDTO: {}", employeeDTO);
 
         if (employeeRepository.existsByEmail(employeeDTO.getEmail())) {
-            logger.error("Employee with email {} already exists", employeeDTO.getEmail());
+            logger.warn("Employee registration failed - Email already exists: {}", employeeDTO.getEmail());
             throw new RuntimeException("Employee with email " + employeeDTO.getEmail() + " already exists");
         }
 
         String hashedPassword = passwordEncoder.encode(employeeDTO.getPassword());
-
         Employee employee = new Employee();
         employee.setEmail(employeeDTO.getEmail());
         employee.setPassword(hashedPassword);
@@ -158,7 +191,8 @@ public class UserServiceImpl implements UserService {
         employee.setPhone(employeeDTO.getPhone());
         employee.setBirthDate(employeeDTO.getBirthDate());
 
-        employeeRepository.save(employee);
-        logger.info("Employee registered successfully: {}", employee);
+        Employee savedEmployee = employeeRepository.save(employee);
+        logger.info("Employee registered successfully: {}", savedEmployee.getEmail());
+        logger.debug("Saved employee details: {}", savedEmployee);
     }
 }
