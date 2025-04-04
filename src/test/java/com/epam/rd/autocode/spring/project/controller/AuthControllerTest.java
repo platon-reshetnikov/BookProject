@@ -1,20 +1,20 @@
 package com.epam.rd.autocode.spring.project.controller;
 
-import com.epam.rd.autocode.spring.project.conf.SecurityConfigTestJWT;
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.mapper.UserWrapper;
 import com.epam.rd.autocode.spring.project.service.UserService;
+import com.epam.rd.autocode.spring.project.service.impl.UserServiceImpl;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Path;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Import;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
@@ -28,6 +28,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -36,18 +37,20 @@ import static org.mockito.Mockito.*;
 @WebMvcTest(AuthController.class)
 @ActiveProfiles("test")
 @WithMockUser
-@Import(SecurityConfigTestJWT.class)
 public class AuthControllerTest {
-    @Qualifier("userServiceImpl")
-    private UserDetailsService userDetailsService;
+
     @Autowired
     private MockMvc mockMvc;
+
     @MockBean
     private UserService userService;
+
     @MockBean
     private Validator validator;
+
     @MockBean
     private MessageSource messageSource;
+
     private ClientDTO clientDTO;
     private EmployeeDTO employeeDTO;
     private UserWrapper userWrapper;
@@ -119,4 +122,5 @@ public class AuthControllerTest {
 
         verify(userService, times(1)).addEmployee(employeeDTO);
     }
+
 }
