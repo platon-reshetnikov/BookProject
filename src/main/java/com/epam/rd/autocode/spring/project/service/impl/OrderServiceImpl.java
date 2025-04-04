@@ -22,13 +22,10 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
-
     private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
-
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
     private final ClientRepository clientRepository;
@@ -167,16 +164,11 @@ public class OrderServiceImpl implements OrderService {
                     return new NotFoundException("Employee not found with email: " + employeeEmail);
                 });
 
-        // Логируем данные заказа перед удалением
         logger.debug("Order to be confirmed and removed: {}", order);
 
-        // Удаляем заказ вместо сохранения
         orderRepository.delete(order);
-
-        // Создаем DTO для возврата (до удаления могли бы сохранить данные в переменную, но здесь просто возвращаем исходный DTO)
         OrderDTO confirmedOrderDTO = orderMapper.toDTO(order);
-        confirmedOrderDTO.setEmployeeEmail(employeeEmail); // Устанавливаем сотрудника в DTO для возврата
-
+        confirmedOrderDTO.setEmployeeEmail(employeeEmail);
         logger.info("Order confirmed and removed successfully - Client: {}, Date: {}", clientEmail, orderDate);
         return confirmedOrderDTO;
     }
@@ -184,7 +176,6 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<Employee> getAllEmployees() {
         logger.info("Retrieving all employees");
-
         List<Employee> employees = employeeRepository.findAll();
         logger.debug("Retrieved {} employees", employees.size());
         return employees;

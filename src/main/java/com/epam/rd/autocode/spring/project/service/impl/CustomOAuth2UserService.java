@@ -1,6 +1,5 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
-import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,7 +18,6 @@ import java.util.Optional;
 
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
-
     private final ClientRepository clientRepository;
 
     public CustomOAuth2UserService(ClientRepository clientRepository) {
@@ -29,21 +27,16 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
-
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
 
-        // Check if the user already exists in your database
         Optional<Client> existingClient = clientRepository.findByEmail(email);
         if (existingClient.isEmpty()) {
-            // Create a new client in your database
             Client newClient = new Client();
             newClient.setEmail(email);
             newClient.setName(name);
-            newClient.setPassword("$2y$10$Vkz6Y9Bz4gp/yeNCgVf4ZuWEkL8yArVro.s9Qh7cnUpTu/67aElQa"); // OAuth2 users don't need a password
-            newClient.setBalance(BigDecimal.valueOf(0.0)); // Default balance
-
-            // Save the new client
+            newClient.setPassword("$2y$10$Vkz6Y9Bz4gp/yeNCgVf4ZuWEkL8yArVro.s9Qh7cnUpTu/67aElQa");
+            newClient.setBalance(BigDecimal.valueOf(100.0));
             clientRepository.save(newClient);
         }
 

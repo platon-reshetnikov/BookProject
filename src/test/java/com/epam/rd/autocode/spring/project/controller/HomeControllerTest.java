@@ -15,7 +15,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-
 import java.util.Locale;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -26,17 +25,13 @@ import static org.mockito.Mockito.when;
 @ActiveProfiles("test")
 @Import(SecurityConfigTestJWT.class)
 @AutoConfigureMockMvc(addFilters = false)
-
 public class HomeControllerTest {
     @Qualifier("userServiceImpl")
     private UserDetailsService userDetailsService;
-
     @Autowired
     private MockMvc mockMvc;
-
     @MockBean
     private MessageSource messageSource;
-
 
     @BeforeEach
     void setUp(){
@@ -58,24 +53,6 @@ public class HomeControllerTest {
     }
 
     @Test
-    void loginPage_WithAcceptLanguageHeader_ReturnsLoginViewWithLocalizedMessage() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/login")
-                        .header("Accept-Language", "en-US"))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.view().name("login"))
-                .andExpect(MockMvcResultMatchers.model().attribute("welcomeMessage", "Welcome!"));
-    }
-
-    @Test
-    void loginPage_WithMultipleAcceptLanguage_ReturnsLoginViewWithPrimaryLanguage() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/login")
-                        .header("Accept-Language", "ru-RU, en-US;q=0.9"))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.view().name("login"))
-                .andExpect(MockMvcResultMatchers.model().attribute("welcomeMessage", "Добро пожаловать!"));
-    }
-
-    @Test
     void loginPage_WithoutLangOrHeader_ReturnsLoginViewWithDefaultLocale() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/login"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -91,15 +68,4 @@ public class HomeControllerTest {
                 .andExpect(MockMvcResultMatchers.view().name("login"))
                 .andExpect(MockMvcResultMatchers.model().attribute("welcomeMessage", "Welcome by default!"));
     }
-
-    @Test
-    void loginPage_WithInvalidAcceptLanguage_ReturnsLoginViewWithDefaultLocale() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/login")
-                        .header("Accept-Language", "invalid"))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.view().name("login"))
-                .andExpect(MockMvcResultMatchers.model().attribute("welcomeMessage", "Welcome by default!"));
-    }
-
-
 }

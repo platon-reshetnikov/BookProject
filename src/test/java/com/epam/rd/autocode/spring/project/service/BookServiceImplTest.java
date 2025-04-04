@@ -15,26 +15,20 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 public class BookServiceImplTest {
-
     @Mock
     private BookRepository bookRepository;
-
     @Mock
     private BookMapper bookMapper;
-
     @InjectMocks
     private BookServiceImpl bookService;
-
     private BookDTO bookDTO;
     private Book book;
 

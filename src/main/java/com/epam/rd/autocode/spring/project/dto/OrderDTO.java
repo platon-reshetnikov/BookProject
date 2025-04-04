@@ -3,7 +3,6 @@ package com.epam.rd.autocode.spring.project.dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;

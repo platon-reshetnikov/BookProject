@@ -15,26 +15,20 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 public class ClientServiceImplTest {
-
     @Mock
     private ClientRepository clientRepository;
-
     @Mock
     private ClientMapper clientMapper;
-
     @InjectMocks
     private ClientServiceImpl clientService;
-
     private Client client;
     private ClientDTO clientDTO;
     private static final String CLIENT_EMAIL = "test@example.com";

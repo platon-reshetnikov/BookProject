@@ -4,7 +4,6 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import validation.EmployeeValidationGroup;
-
 import java.time.LocalDate;
 
 @Data
@@ -34,6 +33,6 @@ public class EmployeeDTO {
 
     @NotNull(message = "Birth date cannot be null", groups = EmployeeValidationGroup.class)
     @Past(message = "Birth date must be in the past", groups = EmployeeValidationGroup.class)
-    @DateTimeFormat(pattern = "yyyy-MM-dd") // Ensure correct formatting
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthDate;
 }

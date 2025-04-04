@@ -18,7 +18,6 @@ import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-
     @Autowired
     private MessageSource messageSource;
 
@@ -80,16 +79,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
-    // Вспомогательный метод для определения типа сущности из сообщения
     private String determineEntityType(String message) {
         if (message.contains("Employee")) return "Employee";
         if (message.contains("Client")) return "Client";
         if (message.contains("Book")) return "Book";
         if (message.contains("Order")) return "Order";
-        return "Resource"; // Общий случай
+        return "Resource";
     }
 
-    // Вспомогательный метод для извлечения идентификатора из сообщения
     private String extractIdentifier(String message) {
         int start = message.indexOf(": ") + 2;
         if (start > 1 && start < message.length()) {

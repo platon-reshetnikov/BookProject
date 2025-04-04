@@ -5,7 +5,6 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
-
 import java.math.BigDecimal;
 
 @Setter

@@ -13,19 +13,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
-
     private static final Logger logger = LoggerFactory.getLogger(ClientServiceImpl.class);
-
     private final ClientRepository clientRepository;
     private final ClientMapper clientMapper;
-
     private final Map<String, Boolean> clientBlockedStatus = new HashMap<>();
     private final Map<String, List<BookItemDTO>> clientBaskets = new HashMap<>();
 

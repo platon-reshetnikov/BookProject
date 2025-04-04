@@ -3,7 +3,6 @@ package com.epam.rd.autocode.spring.project.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import validation.ClientValidationGroup;
-
 import java.math.BigDecimal;
 
 @Data

@@ -3,14 +3,12 @@ package com.epam.rd.autocode.spring.project.mapper;
 import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
 import com.epam.rd.autocode.spring.project.model.BookItem;
 import com.epam.rd.autocode.spring.project.model.Book;
-
 import org.mapstruct.Mapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring")
 public interface BookItemMapper {
-
     @Mapping(target = "book", source = "bookName", qualifiedByName = "mapBookNameToBook")
     BookItem toEntity(BookItemDTO bookItemDTO);
 

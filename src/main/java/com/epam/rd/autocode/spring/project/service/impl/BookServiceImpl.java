@@ -15,16 +15,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-
 @Service
 @RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
-
     private static final Logger logger = LoggerFactory.getLogger(BookServiceImpl.class);
-
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
 

@@ -18,15 +18,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.util.Collections;
 
 @Service
 @Primary
 public class UserServiceImpl implements UserService {
-
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
-
     private final ClientRepository clientRepository;
     private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;

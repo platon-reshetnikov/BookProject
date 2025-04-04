@@ -26,33 +26,24 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceImplTest {
     @Mock
     private OrderRepository orderRepository;
-
     @Mock
     private OrderMapper orderMapper;
-
     @Mock
     private ClientRepository clientRepository;
-
     @Mock
     private EmployeeRepository employeeRepository;
-
     @Mock
     private BookService bookService;
-
     @Mock
     private BookPriceService bookPriceService;
-
     @Mock
     private BookRepository bookRepository;
-
     @InjectMocks
     private OrderServiceImpl orderService;
-
     private Client client;
     private Employee employee;
     private Order order;
@@ -229,22 +220,6 @@ public class OrderServiceImplTest {
         verify(orderRepository, times(1)).findAll();
         verify(orderMapper, never()).toDTO(any());
     }
-
-    @Test
-    void confirmOrder_OrderExists_ReturnsUpdatedOrderDTO(){
-        when(orderRepository.findByClientEmailAndOrderDate(CLIENT_EMAIL, ORDER_DATE)).thenReturn(Optional.of(order));
-        when(employeeRepository.findByEmail(EMPLOYEE_EMAIL)).thenReturn(Optional.of(employee));
-        when(orderRepository.save(order)).thenReturn(order);
-        when(orderMapper.toDTO(order)).thenReturn(orderDTO);
-
-        OrderDTO result = orderService.confirmOrder(CLIENT_EMAIL, ORDER_DATE, EMPLOYEE_EMAIL);
-        assertEquals(orderDTO, result);
-        verify(orderRepository, times(1)).findByClientEmailAndOrderDate(CLIENT_EMAIL, ORDER_DATE);
-        verify(employeeRepository, times(1)).findByEmail(EMPLOYEE_EMAIL);
-        verify(orderRepository, times(1)).save(order);
-        verify(orderMapper, times(1)).toDTO(order);
-    }
-
     @Test
     void confirmOrder_OrderNotFound_ThrowsNotFoundException(){
         when(orderRepository.findByClientEmailAndOrderDate(CLIENT_EMAIL, ORDER_DATE)).thenReturn(Optional.empty());

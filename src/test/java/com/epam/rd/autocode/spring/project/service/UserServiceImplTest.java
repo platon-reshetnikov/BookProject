@@ -29,22 +29,16 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceImplTest {
-
     @Mock
     private ClientRepository clientRepository;
-
     @Mock
     private EmployeeRepository employeeRepository;
-
     @Mock
     private ClientService clientService;
-
     @Mock
     private PasswordEncoder passwordEncoder;
-
     @InjectMocks
     private UserServiceImpl userService;
-
     private Client client;
     private Employee employee;
     private ClientDTO clientDTO;

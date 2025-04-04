@@ -1,22 +1,17 @@
 package com.epam.rd.autocode.spring.project.conf;
 
-import com.epam.rd.autocode.spring.project.auth.CustomUserDetailsService;
 import com.epam.rd.autocode.spring.project.jwt.JwtAuthFilter;
 import com.epam.rd.autocode.spring.project.jwt.JwtUtils;
-import com.epam.rd.autocode.spring.project.provider.CustomAuthenticationProvider;
 import com.epam.rd.autocode.spring.project.service.impl.CustomOAuth2UserService;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -31,7 +26,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
-
 public class SecurityConfig {
 
     private final JwtUtils jwtUtils;
@@ -75,7 +69,6 @@ public class SecurityConfig {
                         .loginPage("/login")
                         .permitAll()
                         .successHandler((request, response, authentication) -> {
-                            // For API requests, we return JSON with a token
                             if (isApiRequest(request)) {
                                 String jwt = jwtUtils. generateToken(authentication);
                                 response.setContentType("application/json");
@@ -83,41 +76,39 @@ public class SecurityConfig {
                                         String.format("{\"token\":\"%s\"}", jwt)
                                 );
                             } else {
-                                // For regular requests - redirect
                                 response.sendRedirect("/books");
                             }
                         })
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/login") // Redirect to the custom login page
-                        .defaultSuccessUrl("/books", true) // Redirect after successful OAuth2 login
-                        .failureUrl("/login?error=true") // Redirect on OAuth2 login failure
-                        .authorizationEndpoint(auth -> auth // Authorization Endpoint Configuration
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/books", true)
+                        .failureUrl("/login?error=true")
+                        .authorizationEndpoint(auth -> auth
                                 .baseUri("/oauth2/authorization")
                                 .authorizationRequestRepository(authorizationRequestRepository())
                         )
-                        .userInfoEndpoint(userInfo -> userInfo // User Info Endpoint Configuration
+                        .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
                         )
                 )
                 .addFilterBefore(jwtAuthFilter(userDetailsService), UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout
-                        .logoutUrl("/logout")  // Must match your logout request URL
-                        .logoutSuccessUrl("/login?logout=true")  // Must point to a valid endpoint
-                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET")) // Allow GET for logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout=true")
+                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID", "XSRF-TOKEN")
                         .permitAll()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // For API
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // For UI
-                        .sessionFixation().migrateSession()  // Prevents session fixation attacks
-                        .maximumSessions(1)                  // Allows only 1 session per user
-                        .maxSessionsPreventsLogin(false)     // Terminates oldest session when new one starts
-                        .expiredUrl("/login?expired")        // Redirect when session is invalidated
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionFixation().migrateSession()
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
+                        .expiredUrl("/login?expired")
                 )
-                // Handling authentication errors
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
                             if (isApiRequest(request)) {
@@ -139,7 +130,7 @@ public class SecurityConfig {
                         })
                 )
                 .requiresChannel(channel -> channel
-                        .anyRequest().requiresSecure() // Force HTTPS for all requests
+                        .anyRequest().requiresSecure()
                 )
                 .userDetailsService(userDetailsService);
 

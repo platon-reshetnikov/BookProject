@@ -6,8 +6,6 @@ import com.epam.rd.autocode.spring.project.mapper.UserWrapper;
 import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.model.Employee;
 import com.epam.rd.autocode.spring.project.service.UserService;
-import com.epam.rd.autocode.spring.project.service.impl.UserServiceImpl;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +23,8 @@ import java.util.Locale;
 @Controller
 @RequestMapping("/profile")
 public class ProfileController {
-
     private static final Logger logger = LoggerFactory.getLogger(ProfileController.class);
-
     private final UserService userService;
-
     @Autowired
     private MessageSource messageSource;
 

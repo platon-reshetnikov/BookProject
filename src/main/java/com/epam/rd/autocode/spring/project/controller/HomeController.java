@@ -7,14 +7,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
-
 import java.util.Locale;
 
 @Controller
 public class HomeController {
-
     private final MessageSource messageSource;
-
     @Autowired
     public HomeController(MessageSource messageSource) {
         this.messageSource = messageSource;

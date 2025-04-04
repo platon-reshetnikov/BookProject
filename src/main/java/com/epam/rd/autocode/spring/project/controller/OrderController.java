@@ -26,15 +26,11 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/orders")
 public class OrderController {
-
     private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
-
     @Autowired
     private OrderService orderService;
-
     @Autowired
     private MessageSource messageSource;
-
     @Autowired
     private BookPriceService bookPriceService;
 

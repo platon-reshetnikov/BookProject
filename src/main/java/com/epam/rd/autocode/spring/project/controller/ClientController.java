@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
@@ -34,18 +33,13 @@ import java.util.*;
 @Controller
 @RequestMapping("/clients")
 public class ClientController {
-
     private static final Logger logger = LoggerFactory.getLogger(ClientController.class);
-
     @Autowired
     private ClientService clientService;
-
     @Autowired
     private OrderService orderService;
-
     @Autowired
     private EmployeeRepository employeeRepository;
-
     @Autowired
     private MessageSource messageSource;
 
@@ -102,7 +96,6 @@ public class ClientController {
                               @RequestParam(name = "lang", required = false) String lang) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         String roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
-
         logger.info("Blocking client - User: {}, Roles: {}, Client email: {}", username, roles, email);
 
         if (lang != null && !lang.isBlank()) {

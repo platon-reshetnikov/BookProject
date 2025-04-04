@@ -22,19 +22,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.List;
 import java.util.Locale;
 
 @Controller
 @RequestMapping("/books")
 public class BookController {
-
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
-
     @Autowired
     private BookService bookService;
-
     @Autowired
     private MessageSource messageSource;
 
@@ -101,7 +96,6 @@ public class BookController {
             logger.warn("Book not found: {}", name);
             throw new NotFoundException("Book not found: " + name);
         }
-
         logger.debug("Book retrieved successfully: {}", book);
         ModelAndView modelAndView = new ModelAndView("book-details");
         modelAndView.addObject("book", book);

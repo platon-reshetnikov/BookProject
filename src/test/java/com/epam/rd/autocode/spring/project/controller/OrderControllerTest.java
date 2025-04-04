@@ -37,24 +37,17 @@ import static org.mockito.Mockito.*;
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @Import(SecurityConfigTestJWT.class)
-
 public class OrderControllerTest {
-
     @Qualifier("userServiceImpl")
     private UserDetailsService userDetailsService;
-
     @Autowired
     private MockMvc mockMvc;
-
     @MockBean
     private OrderService orderService;
-
     @MockBean
     private BookPriceService bookPriceService;
-
     @MockBean
     private MessageSource messageSource;
-
     private OrderDTO orderDTO;
     private Employee employee;
     private BookItemDTO bookItemDTO;
@@ -97,15 +90,15 @@ public class OrderControllerTest {
                 .andExpect(MockMvcResultMatchers.model().attribute("clientEmail", "client@example.com"));
     }
 
-//    @Test
-//    void getOrdersByClient_NotFound_ReturnsOrdersViewWithError() throws Exception {
-//        when(orderService.getOrdersByClient("unknown@example.com")).thenThrow(new NotFoundException("Client not found"));
-//
-//        mockMvc.perform(MockMvcRequestBuilders.get("/orders/client/unknown@example.com"))
-//                .andExpect(MockMvcResultMatchers.status().isOk())
-//                .andExpect(MockMvcResultMatchers.view().name("orders"))
-//                .andExpect(MockMvcResultMatchers.model().attribute("errorMessage", "Client not found: client@example.com"));
-//    }
+    @Test
+    void getOrdersByClient_NotFound_ReturnsOrdersViewWithError() throws Exception {
+        when(orderService.getOrdersByClient("unknown@example.com")).thenThrow(new NotFoundException("Client not found"));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/orders/client/unknown@example.com"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.view().name("orders"))
+                .andExpect(MockMvcResultMatchers.model().attribute("errorMessage", "Client not found: client@example.com"));
+    }
 
     @Test
     void getAllOrders_Success_ReturnsOrdersView() throws Exception {

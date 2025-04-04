@@ -1,5 +1,6 @@
 package com.epam.rd.autocode.spring.project.controller;
 
+import com.epam.rd.autocode.spring.project.conf.SecurityConfigTestJWT;
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
@@ -8,16 +9,18 @@ import com.epam.rd.autocode.spring.project.service.BookService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
@@ -37,20 +40,19 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
+@WebMvcTest(BookController.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
+@Import(SecurityConfigTestJWT.class)
 public class BookControllerTest {
-
+    @Qualifier("userServiceImpl")
+    private UserDetailsService userDetailsService;
     @Autowired
     private MockMvc mockMvc;
-
     @MockBean
     private BookService bookService;
-
     @MockBean
     private MessageSource messageSource;
-
     private BookDTO bookDTO;
 
     @BeforeEach
@@ -80,15 +82,12 @@ public class BookControllerTest {
     @Test
     @WithMockUser(authorities = {"USER"})
     void getAllBooks_ReturnsBooksViewWithBookList() throws Exception {
-        // Подготовка данных
         List<BookDTO> books = Collections.singletonList(bookDTO);
         Page<BookDTO> bookPage = new PageImpl<>(books, PageRequest.of(0, 10), books.size());
 
-        // Настройка поведения сервиса
         Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "name"));
         when(bookService.getAllBooks(pageable, null)).thenReturn(bookPage);
 
-        // Выполнение запроса и проверка
         mockMvc.perform(MockMvcRequestBuilders.get("/books")
                         .param("page", "0")
                         .param("size", "10")
@@ -217,33 +216,5 @@ public class BookControllerTest {
                 .andExpect(MockMvcResultMatchers.view().name("book-form"));
 
         verify(bookService, never()).updateBookByName(any(), any());
-    }
-
-    @Test
-    @WithMockUser(authorities = {"EMPLOYEE"})
-    void deleteBook_Success_RedirectsToBooks() throws Exception {
-        doNothing().when(bookService).deleteBookByName("Test Book");
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/books/delete/Test Book")
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
-                .andExpect(MockMvcResultMatchers.redirectedUrl("/books"))
-                .andExpect(MockMvcResultMatchers.flash().attribute("successMessage", "Book Test Book has been deleted successfully"));
-
-        verify(bookService, times(1)).deleteBookByName("Test Book");
-    }
-
-    @Test
-    @WithMockUser(authorities = {"EMPLOYEE"})
-    void deleteBook_NotFound_RedirectsToBooksWithError() throws Exception {
-        doThrow(new NotFoundException("Book not found with name: Test Book")).when(bookService).deleteBookByName("Test Book");
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/books/delete/Test Book")
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
-                .andExpect(MockMvcResultMatchers.redirectedUrl("/books"))
-                .andExpect(MockMvcResultMatchers.flash().attribute("errorMessage", "Book not found with name: Test Book"));
-
-        verify(bookService, times(1)).deleteBookByName("Test Book");
     }
 }

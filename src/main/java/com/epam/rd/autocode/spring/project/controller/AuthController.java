@@ -21,16 +21,13 @@ import validation.EmployeeValidationGroup;
 import java.util.Locale;
 import java.util.Set;
 
-
 @Controller
 @RequestMapping("/register")
 public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
-
     private final UserService userService;
     @Autowired
     private MessageSource messageSource;
-
     private final Validator validator;
 
     @Autowired
@@ -65,18 +62,14 @@ public class AuthController {
             logger.debug("Using default locale for POST /register: {}", Locale.getDefault());
         }
 
-        // Устанавливаем флаг submitted
         model.addAttribute("submitted", true);
 
-        // Валидация в зависимости от userType
         if ("client".equals(userType)) {
-            // Валидируем только clientDTO
             Set<ConstraintViolation<ClientDTO>> violations = validator.validate(userWrapper.getClientDTO(), ClientValidationGroup.class);
             for (ConstraintViolation<ClientDTO> violation : violations) {
                 bindingResult.rejectValue("clientDTO." + violation.getPropertyPath(), violation.getMessageTemplate(), violation.getMessage());
             }
         } else if ("employee".equals(userType)) {
-            // Валидируем только employeeDTO
             Set<ConstraintViolation<EmployeeDTO>> violations = validator.validate(userWrapper.getEmployeeDTO(), EmployeeValidationGroup.class);
             for (ConstraintViolation<EmployeeDTO> violation : violations) {
                 bindingResult.rejectValue("employeeDTO." + violation.getPropertyPath(), violation.getMessageTemplate(), violation.getMessage());
@@ -137,7 +130,6 @@ public class AuthController {
 
     @GetMapping("/oauth2/success")
     public String oauth2Success(Model model) {
-        // Handle successful OAuth2 login
         model.addAttribute("successMessage", "You have successfully logged in with Google!");
         return "books";
     }
