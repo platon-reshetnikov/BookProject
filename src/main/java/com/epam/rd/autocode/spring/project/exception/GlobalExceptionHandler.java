@@ -22,7 +22,8 @@ public class GlobalExceptionHandler {
     private MessageSource messageSource;
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
+    public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex,
+                                                                 @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
         if (locale == null) locale = Locale.getDefault();
         String entityType = determineEntityType(ex.getMessage());
         String key = entityType.toLowerCase() + ".not.found";
@@ -34,7 +35,21 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AlreadyExistException.class)
-    public ResponseEntity<ErrorResponse> handleAlreadyExistsException(AlreadyExistException ex, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
+    public ResponseEntity<ErrorResponse> handleAlreadyExistsException(AlreadyExistException ex,
+                                                                      @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
+        if (locale == null) locale = Locale.getDefault();
+        String entityType = determineEntityType(ex.getMessage());
+        String key = entityType.toLowerCase() + ".already.exists";
+        String identifier = extractIdentifier(ex.getMessage());
+        String errorMessage = messageSource.getMessage(key, new Object[]{identifier}, ex.getMessage(), locale);
+
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.CONFLICT.value(), errorMessage, System.currentTimeMillis());
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateResourceException(DuplicateResourceException ex,
+                                                                          @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
         if (locale == null) locale = Locale.getDefault();
         String entityType = determineEntityType(ex.getMessage());
         String key = entityType.toLowerCase() + ".already.exists";
@@ -46,7 +61,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
+    public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex,
+                                                                          @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
         if (locale == null) locale = Locale.getDefault();
         Map<String, String> errors = new HashMap<>();
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
@@ -63,7 +79,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
+    public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex,
+                                                                         @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
         if (locale == null) locale = Locale.getDefault();
         Map<String, String> errors = new HashMap<>();
         for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
@@ -77,6 +94,16 @@ public class GlobalExceptionHandler {
         response.put("timestamp", System.currentTimeMillis());
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex,
+                                                                @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
+        if (locale == null) locale = Locale.getDefault();
+        String errorMessage = messageSource.getMessage("internal.server.error", null, "An unexpected error occurred", locale);
+
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), errorMessage, System.currentTimeMillis());
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private String determineEntityType(String message) {

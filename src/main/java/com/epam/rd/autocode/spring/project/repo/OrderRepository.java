@@ -13,4 +13,5 @@ public interface OrderRepository extends JpaRepository<Order,Long> {
     List<Order> findByClientEmail(String clientEmail);
     List<Order> findByEmployeeEmail(String employeeEmail);
     Optional<Order> findByClientEmailAndOrderDate(String clientEmail, LocalDateTime orderDate);
+    void deleteByClientEmail(String clientEmail);
 }

@@ -18,16 +18,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.Locale;
 
 @Controller
 @RequestMapping("/books")
 public class BookController {
-    private static final Logger logger = LoggerFactory.getLogger(BookController.class);
     @Autowired
     private BookService bookService;
     @Autowired
@@ -42,18 +38,6 @@ public class BookController {
             @RequestParam(name = "search", required = false) String search,
             @RequestParam(name = "lang", required = false) String lang) {
 
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        String roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
-
-        logger.info("Retrieving books list - User: {}, Roles: {}, Page: {}, Size: {}, Sort: {}, Search: {}",
-                username, roles, page, size, sort, search);
-
-        if (lang != null && !lang.isBlank()) {
-            logger.debug("Switching locale to: {}", lang);
-        } else {
-            logger.debug("Using default locale: {}", Locale.getDefault());
-        }
-
         String[] sortParams = sort.split(",");
         String sortField = sortParams[0];
         Sort.Direction sortDirection = Sort.Direction.fromString(sortParams[1]);
@@ -61,7 +45,6 @@ public class BookController {
         Pageable pageable = PageRequest.of(page, size, sortOrder);
 
         Page<BookDTO> bookPage = bookService.getAllBooks(pageable, search);
-        logger.debug("Retrieved {} books out of {} total", bookPage.getNumberOfElements(), bookPage.getTotalElements());
 
         ModelAndView modelAndView = new ModelAndView("books");
         modelAndView.addObject("books", bookPage.getContent());
@@ -80,23 +63,10 @@ public class BookController {
     @PreAuthorize("hasAnyRole('USER', 'EMPLOYEE', 'CUSTOMER')")
     public ModelAndView getBookByName(@PathVariable String name,
                                       @RequestParam(name = "lang", required = false) String lang) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        String roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
-
-        logger.info("Retrieving book - User: {}, Roles: {}, Book name: {}", username, roles, name);
-
-        if (lang != null && !lang.isBlank()) {
-            logger.debug("Switching locale to: {}", lang);
-        } else {
-            logger.debug("Using default locale: {}", Locale.getDefault());
-        }
-
         BookDTO book = bookService.getBookByName(name);
         if (book == null) {
-            logger.warn("Book not found: {}", name);
             throw new NotFoundException("Book not found: " + name);
         }
-        logger.debug("Book retrieved successfully: {}", book);
         ModelAndView modelAndView = new ModelAndView("book-details");
         modelAndView.addObject("book", book);
         return modelAndView;
@@ -105,17 +75,6 @@ public class BookController {
     @GetMapping("/add")
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ModelAndView showAddBookForm(@RequestParam(name = "lang", required = false) String lang) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        String roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
-
-        logger.info("Showing add book form - User: {}, Roles: {}", username, roles);
-
-        if (lang != null && !lang.isBlank()) {
-            logger.debug("Switching locale to: {}", lang);
-        } else {
-            logger.debug("Using default locale: {}", Locale.getDefault());
-        }
-
         ModelAndView modelAndView = new ModelAndView("book-form");
         modelAndView.addObject("book", new BookDTO());
         modelAndView.addObject("ageGroups", AgeGroup.values());
@@ -129,28 +88,13 @@ public class BookController {
                           BindingResult bindingResult,
                           RedirectAttributes redirectAttributes,
                           @RequestParam(name = "lang", required = false) String lang) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        String roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
-
-        logger.info("Adding new book - User: {}, Roles: {}, Book: {}", username, roles, bookDTO);
-
-        if (lang != null && !lang.isBlank()) {
-            logger.debug("Switching locale to: {}", lang);
-        } else {
-            logger.debug("Using default locale: {}", Locale.getDefault());
-        }
-
         if (bindingResult.hasErrors()) {
-            logger.warn("Validation errors while adding book: {}", bindingResult.getAllErrors());
             return "book-form";
         }
-
         bookService.addBook(bookDTO);
         Locale locale = LocaleContextHolder.getLocale();
         String message = messageSource.getMessage("book.added", new Object[]{bookDTO.getName()}, locale);
         redirectAttributes.addFlashAttribute("successMessage", message);
-        logger.info("Book added successfully: {}", bookDTO.getName());
-
         return "redirect:/books";
     }
 
@@ -158,23 +102,10 @@ public class BookController {
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ModelAndView showEditBookForm(@PathVariable String name,
                                          @RequestParam(name = "lang", required = false) String lang) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        String roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
-
-        logger.info("Showing edit book form - User: {}, Roles: {}, Book name: {}", username, roles, name);
-
-        if (lang != null && !lang.isBlank()) {
-            logger.debug("Switching locale to: {}", lang);
-        } else {
-            logger.debug("Using default locale: {}", Locale.getDefault());
-        }
-
         BookDTO book = bookService.getBookByName(name);
         if (book == null) {
-            logger.warn("Book not found for editing: {}", name);
             throw new NotFoundException("Book not found: " + name);
         }
-
         ModelAndView modelAndView = new ModelAndView("book-form");
         modelAndView.addObject("book", book);
         modelAndView.addObject("ageGroups", AgeGroup.values());
@@ -189,34 +120,13 @@ public class BookController {
             BindingResult bindingResult,
             RedirectAttributes redirectAttributes,
             @RequestParam(name = "lang", required = false) String lang) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        String roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
-
-        logger.info("Updating book - User: {}, Roles: {}, Book: {}", username, roles, bookDTO);
-
-        if (lang != null && !lang.isBlank()) {
-            logger.debug("Switching locale to: {}", lang);
-        } else {
-            logger.debug("Using default locale: {}", Locale.getDefault());
-        }
-
         if (bindingResult.hasErrors()) {
-            logger.warn("Validation errors while updating book: {}", bindingResult.getAllErrors());
             return "book-form";
         }
-
-        if (bookDTO.getPublicationDate() != null) {
-            logger.debug("Publication Date: {}", bookDTO.getPublicationDate());
-        } else {
-            logger.warn("Publication Date is null for book: {}", bookDTO.getName());
-        }
-
         bookService.updateBookByName(bookDTO.getName(), bookDTO);
         Locale locale = LocaleContextHolder.getLocale();
         String message = messageSource.getMessage("book.updated", new Object[]{bookDTO.getName()}, locale);
         redirectAttributes.addFlashAttribute("successMessage", message);
-        logger.info("Book updated successfully: {}", bookDTO.getName());
-
         return "redirect:/books";
     }
 
@@ -225,30 +135,16 @@ public class BookController {
     public String deleteBook(@PathVariable String name,
                              RedirectAttributes redirectAttributes,
                              @RequestParam(name = "lang", required = false) String lang) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        String roles = SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
-
-        logger.info("Deleting book - User: {}, Roles: {}, Book name: {}", username, roles, name);
-
-        if (lang != null && !lang.isBlank()) {
-            logger.debug("Switching locale to: {}", lang);
-        } else {
-            logger.debug("Using default locale: {}", Locale.getDefault());
-        }
-
         try {
             bookService.deleteBookByName(name);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("book.deleted", new Object[]{name}, locale);
             redirectAttributes.addFlashAttribute("successMessage", message);
-            logger.info("Book deleted successfully: {}", name);
         } catch (NotFoundException e) {
-            logger.warn("Failed to delete book - not found: {}", name);
             Locale locale = LocaleContextHolder.getLocale();
             String message = messageSource.getMessage("book.not.found", new Object[]{name}, locale);
             redirectAttributes.addFlashAttribute("errorMessage", message);
         }
-
         return "redirect:/books";
     }
 }

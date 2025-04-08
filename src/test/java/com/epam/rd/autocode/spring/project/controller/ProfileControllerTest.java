@@ -1,5 +1,6 @@
 package com.epam.rd.autocode.spring.project.controller;
 
+import com.epam.rd.autocode.spring.project.conf.SecurityConfigTestJWT;
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.mapper.UserWrapper;
@@ -10,10 +11,13 @@ import com.epam.rd.autocode.spring.project.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,16 +37,16 @@ import static org.mockito.Mockito.*;
 @WebMvcTest(ProfileController.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
+@Import(SecurityConfigTestJWT.class)
 public class ProfileControllerTest {
+    @Qualifier("userServiceImpl")
+    private UserDetailsService userDetailsService;
     @Autowired
     private MockMvc mockMvc;
-
     @MockBean
     private UserService userService;
-
     @MockBean
     private MessageSource messageSource;
-
     private Client client;
     private Employee employee;
     private ClientDTO clientDTO;
