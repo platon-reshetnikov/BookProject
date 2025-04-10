@@ -23,4 +23,10 @@ public interface UserService extends UserDetailsService {
 
     @Override
     UserDetails loadUserByUsername(String email) throws UsernameNotFoundException;
+
+    ClientDTO findClientByEmail(String email);
+
+    String generatePasswordResetToken(String email);
+
+    void resetPassword(String token, String newPassword);
 }

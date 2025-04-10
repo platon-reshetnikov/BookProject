@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title th:text="#{login.title}">Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <style>
         body {
             background-color: #f8f9fa;
@@ -100,6 +101,17 @@
         .oauth-login a:hover {
             background-color: #c23321; /* Darker shade for hover */
         }
+        .forgot-password {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .forgot-password a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -128,6 +140,9 @@
         <div class="button-group">
             <button type="submit" class="btn btn-primary" th:text="#{login}"></button>
             <a th:href="@{/register}" class="btn btn-secondary" th:text="#{register}"></a>
+        </div>
+        <div class="forgot-password">
+            <a th:href="@{/forgot-password}" th:text="#{forgot.password}">Forgot Password?</a>
         </div>
     </form>
 

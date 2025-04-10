@@ -2,6 +2,8 @@ package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
+import com.epam.rd.autocode.spring.project.exception.NotFoundException;
+import com.epam.rd.autocode.spring.project.mapper.ClientMapper;
 import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.model.Employee;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
@@ -10,6 +12,8 @@ import com.epam.rd.autocode.spring.project.service.ClientService;
 import com.epam.rd.autocode.spring.project.service.UserService;
 import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.context.annotation.Primary;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,6 +22,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Primary
@@ -27,13 +34,19 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     @Lazy
     private final ClientService clientService;
+    private final JavaMailSender mailSender;
+    private final ClientMapper clientMapper;
+
+    private final Map<String, String> resetTokens = new ConcurrentHashMap<>();
 
     public UserServiceImpl(ClientRepository clientRepository, EmployeeRepository employeeRepository,
-                           PasswordEncoder passwordEncoder, ClientService clientService) {
+                           PasswordEncoder passwordEncoder, ClientService clientService, JavaMailSender mailSender, ClientMapper clientMapper) {
         this.clientRepository = clientRepository;
         this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
         this.clientService = clientService;
+        this.mailSender = mailSender;
+        this.clientMapper = clientMapper;
     }
 
     @Override
@@ -118,5 +131,46 @@ public class UserServiceImpl implements UserService {
         employee.setPhone(employeeDTO.getPhone());
         employee.setBirthDate(employeeDTO.getBirthDate());
         employeeRepository.save(employee);
+    }
+
+    @Override
+    public ClientDTO findClientByEmail(String email) {
+        Client client = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("Client not found with email: " + email));
+        return clientMapper.toDTO(client);
+    }
+
+    @Override
+    public String generatePasswordResetToken(String email) {
+        ClientDTO user = findClientByEmail(email);
+        String token = UUID.randomUUID().toString();
+        resetTokens.put(token, email);
+
+        String resetLink = "https://localhost:8443/reset-password?token=" + token;
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("ctrather2@gmail.com");
+        message.setTo(email);
+        message.setSubject("Password Reset Request");
+        message.setText("To reset your password, click the link below:\n" + resetLink);
+        mailSender.send(message);
+        return token;
+    }
+
+    @Override
+    public void resetPassword(String token, String newPassword) {
+        String email = resetTokens.get(token);
+        if (email == null) {
+            throw new NotFoundException("Invalid or expired token");
+        }
+
+        Client client = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("Client not found with email: " + email));
+        client.setPassword(passwordEncoder.encode(newPassword));
+        try {
+            clientRepository.save(client);
+            resetTokens.remove(token);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to reset password", e);
+        }
     }
 }
