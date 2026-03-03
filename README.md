@@ -153,7 +153,6 @@ Consider the following additional features:
 - Explore the `test` folder to execute provided test cases for your solution.
 - Refer to the `main\resources\sql` folder for SQL scripts to initialize data.
 
-## Special message
 
 - Make the most of the time available.
   While we understand you may not cover all the points,
