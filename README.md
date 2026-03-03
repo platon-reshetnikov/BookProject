@@ -2,7 +2,6 @@
 
 The purpose of this task is to check your knowledge and understanding in Java and Spring.
 
-Duration: **15** hours
 
 ## Description
 
